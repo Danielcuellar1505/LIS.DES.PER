@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Tema Oscuro -->
+    <color name="colorPrimary">#ffaf3e</color>
+    <color name="colorSecondary">#b12e65</color>
+    <color name="colorBackground">#304653</color>
+    <color name="colorOnPrimary">#ffffff</color>
+    <color name="colorOnSecondary">#ffffff</color>
+    <color name="colorOnBackground">#ffffff</color>
+</resources>

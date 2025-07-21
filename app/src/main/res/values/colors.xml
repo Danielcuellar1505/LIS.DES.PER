@@ -1,0 +1,13 @@
+<resources>
+    <color name="black">#000000</color>
+    <color name="white">#FFFFFF</color>
+
+
+    <!-- Tema Claro -->
+    <color name="colorPrimary">#ffca42</color>
+    <color name="colorSecondary">#e9336d</color>
+    <color name="colorBackground">#4d5a68</color>
+    <color name="colorOnPrimary">#000000</color>
+    <color name="colorOnSecondary">#ffffff</color>
+    <color name="colorOnBackground">#ffffff</color>
+</resources>
