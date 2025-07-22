@@ -1,8 +1,14 @@
 package com.example.lisdesper.ui.listas;
+
+import android.app.AlertDialog;
+import android.content.Context;
+import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -14,34 +20,45 @@ import java.util.List;
 
 public class ListasAdapter extends RecyclerView.Adapter<ListasAdapter.ListaViewHolder> {
 
-    public interface OnAgregarClickListener {
-        void onAgregarClick(int position, String nombreLista);
-    }
-
-    public List<String> listas;
+    private List<Lista> listas;
     private OnAgregarClickListener listener;
 
-    public ListasAdapter(List<String> listas, OnAgregarClickListener listener) {
+    public interface OnAgregarClickListener {
+        void onAgregarClick(int posicionLista);
+    }
+
+
+
+    private Context context;
+
+    public ListasAdapter(Context context, List<Lista> listas, OnAgregarClickListener listener) {
+        this.context = context;
         this.listas = listas;
         this.listener = listener;
+    }
+
+
+    public void setListas(List<Lista> listas) {
+        this.listas = listas;
+        notifyDataSetChanged();
     }
 
     @NonNull
     @Override
     public ListaViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_lista, parent, false);
+                .inflate(R.layout.item_lista_checkbox, parent, false);
         return new ListaViewHolder(view);
+
     }
 
     @Override
     public void onBindViewHolder(@NonNull ListaViewHolder holder, int position) {
-        String nombre = listas.get(position);
-        holder.tvNombre.setText(nombre);
-        holder.btnAgregar.setOnClickListener(v -> {
-            if (listener != null) {
-                listener.onAgregarClick(position, nombre);
-            }
+        Lista lista = listas.get(position);
+        holder.txtNombreLista.setText(lista.getNombre());
+        // Botón para agregar ítems
+        holder.btnAgregarItem.setOnClickListener(v -> {
+            listener.onAgregarClick(position);
         });
     }
 
@@ -51,13 +68,15 @@ public class ListasAdapter extends RecyclerView.Adapter<ListasAdapter.ListaViewH
     }
 
     public static class ListaViewHolder extends RecyclerView.ViewHolder {
-        TextView tvNombre;
-        Button btnAgregar;
+        TextView txtNombreLista;
+        LinearLayout itemsContainer;
+        View btnAgregarItem;
 
         public ListaViewHolder(@NonNull View itemView) {
             super(itemView);
-            tvNombre = itemView.findViewById(R.id.tvNombreLista);
-            btnAgregar = itemView.findViewById(R.id.btnAgregar);
+            txtNombreLista = itemView.findViewById(R.id.txtNombreLista);
+            btnAgregarItem = itemView.findViewById(R.id.btnAgregarItem);
+            itemsContainer = itemView.findViewById(R.id.itemsContainer); // si lo tienes
         }
     }
 }

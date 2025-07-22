@@ -1,0 +1,27 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="4dp"
+    android:gravity="center_vertical">
+
+    <CheckBox
+        android:id="@+id/checkboxItem"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+    <TextView
+        android:id="@+id/textNombreItem"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:paddingStart="8dp"
+        android:text="Item Nombre" />
+
+    <TextView
+        android:id="@+id/textMontoItem"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0.00 Bs."
+        android:paddingStart="8dp"/>
+</LinearLayout>
