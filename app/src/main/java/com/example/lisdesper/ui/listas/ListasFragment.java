@@ -1,4 +1,4 @@
-package com.example.lisdesper.ui.dashboard;
+package com.example.lisdesper.ui.listas;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -10,21 +10,21 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.example.lisdesper.databinding.FragmentDashboardBinding;
+import com.example.lisdesper.databinding.FragmentListasBinding;
 
-public class DashboardFragment extends Fragment {
+public class ListasFragment extends Fragment {
 
-    private FragmentDashboardBinding binding;
+    private FragmentListasBinding binding;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        DashboardViewModel dashboardViewModel =
-                new ViewModelProvider(this).get(DashboardViewModel.class);
+        ListasViewModel dashboardViewModel =
+                new ViewModelProvider(this).get(ListasViewModel.class);
 
-        binding = FragmentDashboardBinding.inflate(inflater, container, false);
+        binding = FragmentListasBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
-        final TextView textView = binding.textDashboard;
+        final TextView textView = binding.textListas;
         dashboardViewModel.getText().observe(getViewLifecycleOwner(), textView::setText);
         return root;
     }

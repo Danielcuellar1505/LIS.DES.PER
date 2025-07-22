@@ -3,23 +3,24 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/mobile_navigation"
-    app:startDestination="@+id/navigation_home">
+    app:startDestination="@+id/navigation_inicio">
 
     <fragment
-        android:id="@+id/navigation_home"
-        android:name="com.example.lisdesper.ui.home.HomeFragment"
-        android:label="@string/title_home"
-        tools:layout="@layout/fragment_home" />
+        android:id="@+id/navigation_inicio"
+        android:name="com.example.lisdesper.ui.inicio.InicioFragment"
+        android:label="@string/title_inicio"
+        tools:layout="@layout/fragment_inicio" />
+
 
     <fragment
-        android:id="@+id/navigation_dashboard"
-        android:name="com.example.lisdesper.ui.dashboard.DashboardFragment"
-        android:label="@string/title_dashboard"
-        tools:layout="@layout/fragment_dashboard" />
+        android:id="@+id/navigation_listas"
+        android:name="com.example.lisdesper.ui.listas.ListasFragment"
+        android:label="@string/title_listas"
+        tools:layout="@layout/fragment_listas" />
 
     <fragment
-        android:id="@+id/navigation_notifications"
-        android:name="com.example.lisdesper.ui.notifications.NotificationsFragment"
-        android:label="@string/title_notifications"
-        tools:layout="@layout/fragment_notifications" />
+        android:id="@+id/navigation_deseos"
+        android:name="com.example.lisdesper.ui.deseos.DeseosFragment"
+        android:label="@string/title_deseos"
+        tools:layout="@layout/fragment_deseos" />
 </navigation>

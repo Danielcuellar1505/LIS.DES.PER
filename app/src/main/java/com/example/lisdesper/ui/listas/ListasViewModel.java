@@ -1,16 +1,16 @@
-package com.example.lisdesper.ui.dashboard;
+package com.example.lisdesper.ui.listas;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-public class DashboardViewModel extends ViewModel {
+public class ListasViewModel extends ViewModel {
 
     private final MutableLiveData<String> mText;
 
-    public DashboardViewModel() {
+    public ListasViewModel() {
         mText = new MutableLiveData<>();
-        mText.setValue("This is dashboard fragment");
+        mText.setValue("LISTAS");
     }
 
     public LiveData<String> getText() {

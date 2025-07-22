@@ -1,4 +1,4 @@
-package com.example.lisdesper.ui.notifications;
+package com.example.lisdesper.ui.deseos;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -10,22 +10,22 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.example.lisdesper.databinding.FragmentNotificationsBinding;
+import com.example.lisdesper.databinding.FragmentDeseosBinding;
 
-public class NotificationsFragment extends Fragment {
+public class DeseosFragment extends Fragment {
 
-    private FragmentNotificationsBinding binding;
+    private FragmentDeseosBinding binding;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        NotificationsViewModel notificationsViewModel =
-                new ViewModelProvider(this).get(NotificationsViewModel.class);
+        DeseosViewModel deseosViewModel =
+                new ViewModelProvider(this).get(DeseosViewModel.class);
 
-        binding = FragmentNotificationsBinding.inflate(inflater, container, false);
+        binding = FragmentDeseosBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
-        final TextView textView = binding.textNotifications;
-        notificationsViewModel.getText().observe(getViewLifecycleOwner(), textView::setText);
+        final TextView textView = binding.textDeseos;
+        deseosViewModel.getText().observe(getViewLifecycleOwner(), textView::setText);
         return root;
     }
 

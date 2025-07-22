@@ -15,26 +15,26 @@ import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
-import com.example.lisdesper.databinding.ActivityHomeBinding;
+import com.example.lisdesper.databinding.ActivityInicioBinding;
 
-public class HomeActivity extends AppCompatActivity {
+public class InicioActivity extends AppCompatActivity {
 
-    private ActivityHomeBinding binding;
+    private ActivityInicioBinding binding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        binding = ActivityHomeBinding.inflate(getLayoutInflater());
+        binding = ActivityInicioBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
         setSupportActionBar(findViewById(R.id.toolbar));
 
         BottomNavigationView navView = findViewById(R.id.nav_view);
         AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.navigation_home, R.id.navigation_dashboard, R.id.navigation_notifications)
+                R.id.navigation_inicio, R.id.navigation_listas, R.id.navigation_deseos)
                 .build();
-        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_activity_home);
+        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_activity_inicio);
         NavigationUI.setupWithNavController(binding.navView, navController);
 
         Window window = getWindow();
@@ -65,6 +65,4 @@ public class HomeActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
-
-
 }
