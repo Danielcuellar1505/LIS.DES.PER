@@ -36,7 +36,7 @@ public class InicioActivity extends AppCompatActivity {
                 .build();
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_activity_inicio);
         NavigationUI.setupWithNavController(binding.navView, navController);
-
+        NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         Window window = getWindow();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             window.setStatusBarColor(ContextCompat.getColor(this, R.color.black));
