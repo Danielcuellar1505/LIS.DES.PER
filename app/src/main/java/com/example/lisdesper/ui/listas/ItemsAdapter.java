@@ -16,9 +16,6 @@ import java.util.List;
 public class ItemsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     public interface OnItemCheckedChangeListener {
-        /**
-         * originalItemIndex: índice del item en la lista original (no en la lista "aplanada" del adapter)
-         */
         void onItemCheckedChanged(int originalItemIndex, boolean isChecked);
     }
 
@@ -57,7 +54,6 @@ public class ItemsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         ListEntry entry = entries.get(position);
         if (entry.getType() == ListEntry.TYPE_HEADER) {
             HeaderViewHolder hv = (HeaderViewHolder) holder;
-            // Aquí puedes formatear la fecha si quieres (p.ej dd/MM/yyyy o "HOY")
             hv.tvHeaderFecha.setText(entry.getFecha());
         } else {
             ItemViewHolder iv = (ItemViewHolder) holder;
@@ -66,19 +62,13 @@ public class ItemsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
             iv.tvNombre.setText(item.getNombre());
             iv.tvDetalle.setText(item.getDetalle());
             iv.tvMonto.setText(String.format("%.2f", item.getMonto()));
-
-            // Evitamos que el listener se dispare al rebindear la celda
             iv.cbCancelado.setOnCheckedChangeListener(null);
             iv.cbCancelado.setChecked(item.isCancelado());
             iv.cbCancelado.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                // Actualiza el modelo local (UI ya refleja el cambio)
                 item.setCancelado(isChecked);
-
-                // Notificamos al listener con el índice ORIGINAL del item (no la posición del adapter)
                 if (checkedListener != null) {
                     checkedListener.onItemCheckedChanged(entry.getOriginalIndex(), isChecked);
                 }
-                // NO llamamos notifyItemChanged(...) aquí para evitar IllegalStateException.
             });
         }
     }
@@ -87,10 +77,7 @@ public class ItemsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     public int getItemCount() {
         return entries != null ? entries.size() : 0;
     }
-
-    /* ViewHolders */
-
-    static class HeaderViewHolder extends RecyclerView.ViewHolder {
+        static class HeaderViewHolder extends RecyclerView.ViewHolder {
         TextView tvHeaderFecha;
         HeaderViewHolder(@NonNull View itemView) {
             super(itemView);

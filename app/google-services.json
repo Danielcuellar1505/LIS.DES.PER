@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "540343553503",
+    "project_id": "lisdesper-a6c10",
+    "storage_bucket": "lisdesper-a6c10.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:540343553503:android:37e21ed9e285c5dcb0086a",
+        "android_client_info": {
+          "package_name": "com.example.lisdesper"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBzTWojW83fUvWWqlKLRMMGhh_S50pH61k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

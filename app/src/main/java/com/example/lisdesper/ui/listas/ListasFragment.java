@@ -1,12 +1,17 @@
 package com.example.lisdesper.ui.listas;
 
 import android.app.AlertDialog;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -16,6 +21,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.lisdesper.R;
 import com.example.lisdesper.databinding.FragmentListasBinding;
+import com.example.lisdesper.utils.ModalHelper;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -25,16 +31,15 @@ import java.util.List;
 import java.util.Locale;
 
 public class ListasFragment extends Fragment {
-
     private FragmentListasBinding binding;
     private ListasViewModel listasViewModel;
     private ItemsAdapter adapter;
-
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
         listasViewModel = new ViewModelProvider(this).get(ListasViewModel.class);
+        listasViewModel.cargarDesdeFirestore();
 
         binding = FragmentListasBinding.inflate(inflater, container, false);
 
@@ -44,8 +49,9 @@ public class ListasFragment extends Fragment {
                 Lista primera = listas.get(0);
                 if (originalIndex >= 0 && originalIndex < primera.getItems().size()) {
                     Item it = primera.getItems().get(originalIndex);
-                    it.setCancelado(isChecked);
-                    // posteamos la actualización para evitar IllegalStateException
+                    if (isChecked) {
+                        mostrarModalConfirmacion(it.getNombre(), it.getMonto());
+                    }
                     binding.recyclerViewListas.post(() ->
                             listasViewModel.actualizarItem(0, originalIndex, it)
                     );
@@ -64,58 +70,62 @@ public class ListasFragment extends Fragment {
                 String lastFecha = null;
                 for (int i = 0; i < items.size(); i++) {
                     Item it = items.get(i);
-                    String fecha = it.getFecha(); // asegurate Item tiene getFecha()
+                    String fecha = it.getFecha();
                     if (lastFecha == null || !lastFecha.equals(fecha)) {
                         flattened.add(ListEntry.header(formatearFechaParaMostrar(fecha)));
                         lastFecha = fecha;
                     }
-                    flattened.add(ListEntry.item(it, i)); // i = índice original en la lista
+                    flattened.add(ListEntry.item(it, i));
                 }
             }
             adapter.setItems(flattened);
         });
-
         binding.fabAgregarLista.setOnClickListener(v -> {
             mostrarDialogoAgregarItem();
         });
-
         return binding.getRoot();
     }
+    private void mostrarModalConfirmacion(String nombre, double monto) {
+        LayoutInflater inflater = LayoutInflater.from(requireContext());
+        View vista = inflater.inflate(R.layout.dialog_confirmacion_cancelacion, null);
+        ImageView imgCheck = vista.findViewById(R.id.imgCheck);
+        TextView txtMensaje = vista.findViewById(R.id.tvMensajeCancelacion);
+        String mensaje = nombre + " canceló " + String.format("%.2f Bs", monto);
+        txtMensaje.setText(mensaje);
 
+        AlertDialog dialog = new AlertDialog.Builder(requireContext())
+                .setView(vista)
+                .create();
+
+        if (dialog.getWindow() != null) {
+            int colorOnSecondary  = requireContext().getResources().getColor(R.color.colorOnSecondary);
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(colorOnSecondary ));
+        }
+        dialog.show();
+
+        new Handler().postDelayed(dialog::dismiss, 2000);
+    }
     private void mostrarDialogoAgregarItem() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
         View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_agregar_item, null);
-
         EditText etNombre = dialogView.findViewById(R.id.etNombre);
         EditText etDetalle = dialogView.findViewById(R.id.etDetalle);
         EditText etMonto = dialogView.findViewById(R.id.etMonto);
-        etMonto.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
 
-        builder.setView(dialogView)
-                .setTitle("Nuevo")
-                .setPositiveButton("Agregar", (dialog, which) -> {
+        ModalHelper.showCustomDialog(
+                requireContext(),
+                R.layout.dialog_agregar_item,
+                "Nuevo",
+                "Agregar", () -> {
                     String nombre = etNombre.getText().toString().trim();
                     String detalle = etDetalle.getText().toString().trim();
                     String montoStr = etMonto.getText().toString().trim();
-
-                    if (nombre.isEmpty() || detalle.isEmpty() || montoStr.isEmpty()) {
-                        Toast.makeText(getContext(), "Por favor ingresa nombre, detalle y monto", Toast.LENGTH_SHORT).show();
-                        return;
+                    if (!nombre.isEmpty() && !detalle.isEmpty() && !montoStr.isEmpty()) {
+                        double monto = Double.parseDouble(montoStr);
+                        listasViewModel.agregarItem(0, new Item(nombre, detalle, monto, false));
                     }
-
-                    double monto;
-                    try {
-                        monto = Double.parseDouble(montoStr);
-                    } catch (NumberFormatException e) {
-                        Toast.makeText(getContext(), "Monto inválido", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-
-                    Item nuevo = new Item(nombre, detalle, monto, false);
-                    listasViewModel.agregarItem(0, nuevo);
-                })
-                .setNegativeButton("Cancelar", null)
-                .show();
+                },
+                "Cancelar", null
+        );
     }
     private String formatearFechaParaMostrar(String fechaIso) {
         if (fechaIso == null) return "";
@@ -135,16 +145,13 @@ public class ListasFragment extends Fragment {
                 return out.format(d);
             }
         } catch (Exception e) {
-            // si falla el parse, devolvemos la cadena original para evitar crash
             return fechaIso;
         }
     }
-
     private boolean isSameDay(Calendar c1, Calendar c2) {
         return c1.get(Calendar.YEAR) == c2.get(Calendar.YEAR)
                 && c1.get(Calendar.DAY_OF_YEAR) == c2.get(Calendar.DAY_OF_YEAR);
     }
-
     @Override
     public void onDestroyView() {
         super.onDestroyView();
