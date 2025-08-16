@@ -5,7 +5,6 @@ import java.util.Date;
 import java.util.Locale;
 
 public class Item {
-    private String idDocumento;
     private String nombre;
     private String detalle;
     private double monto;
@@ -19,18 +18,7 @@ public class Item {
         this.cancelado = cancelado;
         this.fecha = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
     }
-    public Item(String idDocumento, String nombre, String detalle, double monto, boolean cancelado, String fecha) {
-        this.idDocumento = idDocumento;
-        this.nombre = nombre;
-        this.detalle = detalle;
-        this.monto = monto;
-        this.cancelado = cancelado;
-        this.fecha = fecha;
-    }
 
-    public String getIdDocumento() {
-        return idDocumento;
-    }
     public String getNombre() {
         return nombre;
     }
@@ -53,9 +41,8 @@ public class Item {
     public void setCancelado(boolean cancelado) {
         this.cancelado = cancelado;
     }
-    public void setIdDocumento(String idDocumento) {
-        this.idDocumento = idDocumento;
-    }
+
+
     public void setNombre(String nombre) {
         this.nombre = nombre;
     }

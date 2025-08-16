@@ -77,7 +77,7 @@ public class ItemsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     public int getItemCount() {
         return entries != null ? entries.size() : 0;
     }
-        static class HeaderViewHolder extends RecyclerView.ViewHolder {
+    static class HeaderViewHolder extends RecyclerView.ViewHolder {
         TextView tvHeaderFecha;
         HeaderViewHolder(@NonNull View itemView) {
             super(itemView);
