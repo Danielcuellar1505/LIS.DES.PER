@@ -30,39 +30,60 @@ public class ListasFragment extends Fragment {
     private FragmentListasBinding binding;
     private ListasViewModel listasViewModel;
     private ItemsAdapter adapter;
+    private boolean mostrarCancelados = false;
+
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
         listasViewModel = new ViewModelProvider(this).get(ListasViewModel.class);
-
         binding = FragmentListasBinding.inflate(inflater, container, false);
 
-        adapter = new ItemsAdapter(new ArrayList<>(), (originalIndex, isChecked) -> {
-            List<Lista> listas = listasViewModel.getListas().getValue();
-            if (listas != null && !listas.isEmpty()) {
-                Lista primera = listas.get(0);
-                if (originalIndex >= 0 && originalIndex < primera.getItems().size()) {
-                    Item it = primera.getItems().get(originalIndex);
-                    it.setCancelado(isChecked);
-                    binding.recyclerViewListas.post(() ->
-                            listasViewModel.actualizarItem(0, originalIndex, it)
-                    );
-                }
-            }
-        });
+        adapter = new ItemsAdapter(new ArrayList<>(),
+                (originalIndex, isChecked) -> {
+                    List<Lista> listas = listasViewModel.getListas().getValue();
+                    if (listas != null && !listas.isEmpty()) {
+                        Lista primera = listas.get(0);
+                        if (originalIndex >= 0 && originalIndex < primera.getItems().size()) {
+                            Item it = primera.getItems().get(originalIndex);
+                            it.setCancelado(isChecked);
+                            binding.recyclerViewListas.post(() ->
+                                    listasViewModel.actualizarItem(0, originalIndex, it)
+                            );
+                        }
+                    }
+                },
+                () -> {
+                    // Listener para el botón de alternar cancelados
+                    mostrarCancelados = !mostrarCancelados;
+                    // Forzar actualización de la lista localmente
+                    actualizarLista();
+                });
 
         binding.recyclerViewListas.setLayoutManager(new LinearLayoutManager(getContext()));
         binding.recyclerViewListas.setAdapter(adapter);
 
         listasViewModel.getListas().observe(getViewLifecycleOwner(), listas -> {
-            List<ListEntry> flattened = new ArrayList<>();
-            if (listas != null && !listas.isEmpty()) {
-                Lista primera = listas.get(0);
-                List<Item> items = primera.getItems();
-                String lastFecha = null;
-                for (int i = 0; i < items.size(); i++) {
-                    Item it = items.get(i);
+            actualizarLista();
+        });
+
+        binding.fabAgregarLista.setOnClickListener(v -> {
+            mostrarDialogoAgregarItem();
+        });
+
+        return binding.getRoot();
+    }
+
+    private void actualizarLista() {
+        List<Lista> listas = listasViewModel.getListas().getValue();
+        List<ListEntry> flattened = new ArrayList<>();
+        if (listas != null && !listas.isEmpty()) {
+            Lista primera = listas.get(0);
+            List<Item> items = primera.getItems();
+            String lastFecha = null;
+            for (int i = 0; i < items.size(); i++) {
+                Item it = items.get(i);
+                if (mostrarCancelados || !it.isCancelado()) {
                     String fecha = it.getFecha();
                     if (lastFecha == null || !lastFecha.equals(fecha)) {
                         flattened.add(ListEntry.header(formatearFechaParaMostrar(fecha)));
@@ -71,13 +92,10 @@ public class ListasFragment extends Fragment {
                     flattened.add(ListEntry.item(it, i));
                 }
             }
-            adapter.setItems(flattened);
-        });
-        binding.fabAgregarLista.setOnClickListener(v -> {
-            mostrarDialogoAgregarItem();
-        });
-        return binding.getRoot();
+        }
+        adapter.setItems(flattened);
     }
+
     private void mostrarDialogoAgregarItem() {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
         View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_agregar_item, null);
@@ -113,9 +131,6 @@ public class ListasFragment extends Fragment {
                 .show();
     }
 
-
-
-
     private String formatearFechaParaMostrar(String fechaIso) {
         if (fechaIso == null) return "";
         try {
@@ -137,10 +152,12 @@ public class ListasFragment extends Fragment {
             return fechaIso;
         }
     }
+
     private boolean isSameDay(Calendar c1, Calendar c2) {
         return c1.get(Calendar.YEAR) == c2.get(Calendar.YEAR)
                 && c1.get(Calendar.DAY_OF_YEAR) == c2.get(Calendar.DAY_OF_YEAR);
     }
+
     @Override
     public void onDestroyView() {
         super.onDestroyView();
