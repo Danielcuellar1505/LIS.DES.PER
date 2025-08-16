@@ -62,6 +62,20 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
+    <Button
+        android:id="@+id/btnToggleCancelados"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:drawableStart="@drawable/ic_open_eye"
+        android:drawablePadding="4dp"
+        android:padding="8dp"
+        android:text="Mostrar"
+        android:textSize="14sp"
+        app:layout_constraintTop_toBottomOf="@id/separador"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginEnd="12dp"
+        android:layout_marginTop="8dp" />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewListas"
         android:layout_width="0dp"

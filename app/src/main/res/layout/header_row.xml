@@ -18,9 +18,4 @@
         android:textSize="14sp"
         android:textColor="?attr/colorOnBackground" />
 
-    <Button
-        android:id="@+id/btnToggleCancelados"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
-
 </LinearLayout>

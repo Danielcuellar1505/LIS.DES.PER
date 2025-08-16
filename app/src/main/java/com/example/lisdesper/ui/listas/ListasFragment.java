@@ -1,17 +1,18 @@
 package com.example.lisdesper.ui.listas;
 
 import android.app.AlertDialog;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.os.Handler;
 import android.text.InputType;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
-
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -52,12 +53,6 @@ public class ListasFragment extends Fragment {
                             );
                         }
                     }
-                },
-                () -> {
-                    // Listener para el botón de alternar cancelados
-                    mostrarCancelados = !mostrarCancelados;
-                    // Forzar actualización de la lista localmente
-                    actualizarLista();
                 });
 
         binding.recyclerViewListas.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -70,8 +65,25 @@ public class ListasFragment extends Fragment {
         binding.fabAgregarLista.setOnClickListener(v -> {
             mostrarDialogoAgregarItem();
         });
+        setButtonIconAndText(mostrarCancelados);
+
+        binding.btnToggleCancelados.setOnClickListener(v -> {
+            mostrarCancelados = !mostrarCancelados;
+            setButtonIconAndText(mostrarCancelados);
+            actualizarLista();
+        });
 
         return binding.getRoot();
+    }
+    private void setButtonIconAndText(boolean mostrarCancelados) {
+        int drawableRes = mostrarCancelados ? R.drawable.ic_close_eye : R.drawable.ic_open_eye;
+        Drawable drawable = ContextCompat.getDrawable(requireContext(), drawableRes);
+        if (drawable != null) {
+            int size = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16, getResources().getDisplayMetrics());
+            drawable.setBounds(0, 0, size, size);
+            binding.btnToggleCancelados.setCompoundDrawables(drawable, null, null, null);
+        }
+        binding.btnToggleCancelados.setText(mostrarCancelados ? "Ocultar" : "Mostrar");
     }
 
     private void actualizarLista() {
