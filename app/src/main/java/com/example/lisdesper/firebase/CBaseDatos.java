@@ -10,6 +10,7 @@ import com.example.lisdesper.ui.listas.Item;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -30,12 +31,13 @@ public class CBaseDatos {
         return instance;
     }
     public void agregarItem(String listaId, Item item, OnCompleteListener<Item> listener) {
+        String fechaStr = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
         Map<String, Object> itemData = new HashMap<>();
         itemData.put("nombre", item.getNombre());
         itemData.put("detalle", item.getDetalle());
         itemData.put("monto", item.getMonto());
         itemData.put("cancelado", item.isCancelado());
-        itemData.put("fecha", FieldValue.serverTimestamp()); // Usamos timestamp del servidor
+        itemData.put("fecha", fechaStr);
 
         if (listaId == null || listaId.isEmpty()) {
             // Crear nueva lista si no existe
@@ -128,13 +130,10 @@ public class CBaseDatos {
                                 document.getDouble("monto"),
                                 Boolean.TRUE.equals(document.getBoolean("cancelado"))
                         );
-
-                        Timestamp timestamp = document.getTimestamp("fecha");
-                        if (timestamp != null) {
-                            item.setFecha(new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-                                    .format(timestamp.toDate()));
+                        String fechaStr = document.getString("fecha");
+                        if (fechaStr != null) {
+                            item.setFecha(fechaStr);
                         }
-
                         items.add(item);
                     }
                     if (listener != null) listener.onComplete(items, null);
