@@ -5,110 +5,102 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.example.lisdesper.firebase.CBaseDatos;
+import com.google.firebase.firestore.ListenerRegistration;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 public class ListasViewModel extends ViewModel {
     private final MutableLiveData<List<Lista>> listas;
+    private final MutableLiveData<Boolean> isLoading;
     private final CBaseDatos db;
     private String currentListaId;
     private String currentListaNombre = "Lista Principal";
-
+    private ListenerRegistration itemsListener;
     public ListasViewModel() {
         listas = new MutableLiveData<>(new ArrayList<>());
+        isLoading = new MutableLiveData<>(true);
         db = CBaseDatos.getInstance();
         cargarListaPrincipal();
     }
-
     private void cargarListaPrincipal() {
-        db.obtenerListaPrincipal((result, e) -> {
-            if (e != null || result == null || result.getValue() == null) {
-                // Manejar error
+        isLoading.setValue(true);
+        db.obtenerListaPrincipal((listaId, e) -> {
+            if (e != null || listaId == null) {
+                isLoading.postValue(false);
                 return;
             }
-            this.currentListaId = result.getKey(); // Obtenemos el ID de la lista
-            List<Item> items = result.getValue(); // Obtenemos los items
+            this.currentListaId = listaId;
 
             List<Lista> current = new ArrayList<>();
-            Lista listaPrincipal = new Lista(currentListaNombre);
-            listaPrincipal.setItems(items); // Aquí pasamos directamente la List<Item>
-            current.add(listaPrincipal);
+            current.add(new Lista(currentListaNombre));
             listas.postValue(current);
+
+            itemsListener = db.listasCollection.document(listaId).collection("items")
+                    .addSnapshotListener((querySnapshot, error) -> {
+                        if (error != null || querySnapshot == null) {
+                            isLoading.postValue(false);
+                            return;
+                        }
+                        List<Item> newItems = new ArrayList<>();
+                        for (QueryDocumentSnapshot doc : querySnapshot) {
+                            double monto = doc.getDouble("monto") != null ? doc.getDouble("monto") : 0.0;
+                            Item item = new Item(
+                                    doc.getId(),
+                                    doc.getString("nombre"),
+                                    doc.getString("detalle"),
+                                    monto,
+                                    Boolean.TRUE.equals(doc.getBoolean("cancelado"))
+                            );
+                            String fechaStr = doc.getString("fecha");
+                            if (fechaStr != null) {
+                                item.setFecha(fechaStr);
+                            }
+                            newItems.add(item);
+                        }
+                        Collections.sort(newItems, (a, b) -> {
+                            if (a.getFecha() == null) return 1;
+                            if (b.getFecha() == null) return -1;
+                            return b.getFecha().compareTo(a.getFecha());
+                        });
+                        List<Lista> updated = listas.getValue();
+                        if (updated != null && !updated.isEmpty()) {
+                            updated.get(0).setItems(newItems);
+                            listas.postValue(updated);
+                        }
+                        isLoading.postValue(false);
+                    });
         });
     }
-
     public LiveData<List<Lista>> getListas() {
         return listas;
     }
-
     public void agregarItem(int posicionLista, Item item) {
-        final List<Lista> current = new ArrayList<>(listas.getValue() != null ?
-                listas.getValue() : new ArrayList<>());
-
-        if (current.isEmpty()) {
-            current.add(new Lista(currentListaNombre));
-        }
-
-        db.agregarItem(currentListaId, item, (savedItem, e) -> {
-            if (e != null || savedItem == null) {
-                // Mostrar error al usuario
-                return;
-            }
-
-            // Usamos el item con ID asignado por Firestore
-            List<Lista> updatedList = new ArrayList<>(current);
-            int pos = (posicionLista >= 0 && posicionLista < updatedList.size()) ? posicionLista : 0;
-            Lista listaSeleccionada = updatedList.get(pos);
-
-            List<Item> nuevosItems = new ArrayList<>(listaSeleccionada.getItems());
-            nuevosItems.add(savedItem);
-            listaSeleccionada.setItems(nuevosItems);
-
-            updatedList.set(pos, listaSeleccionada);
-            listas.postValue(updatedList);
-        });
+        db.agregarItem(currentListaId, item, null);
     }
-
+    public LiveData<Boolean> getIsLoading() {
+        return isLoading;
+    }
     public void actualizarItem(int posicionLista, int posicionItem, Item itemActualizado) {
-        final List<Lista> current = new ArrayList<>(listas.getValue() != null ?
-                listas.getValue() : new ArrayList<>());
-
-        if (current.isEmpty()) return;
-
-        final int safePosicionLista = Math.max(0, Math.min(posicionLista, current.size()-1));
-        Lista lista = current.get(safePosicionLista);
-        List<Item> items = lista.getItems();
-
-        if (posicionItem < 0 || posicionItem >= items.size()) return;
-
-        // Actualizar localmente primero para mejor experiencia de usuario
-        items.set(posicionItem, itemActualizado);
-        lista.setItems(items);
-        current.set(safePosicionLista, lista);
-        listas.postValue(current);
-
-        // Actualizar en Firestore
-        if (itemActualizado.getId() != null && !itemActualizado.getId().isEmpty()) {
-            db.actualizarItem(currentListaId, itemActualizado.getId(), itemActualizado,
-                    (result, e) -> {
-                        if (e != null) {
-                            // Revertir cambios si falla la actualización en Firestore
-                            items.set(posicionItem, itemActualizado);
-                            lista.setItems(items);
-                            current.set(safePosicionLista, lista);
-                            listas.postValue(current);
-                        }
-                    });
+        if (itemActualizado.getId() == null || itemActualizado.getId().isEmpty()) {
+            return;
         }
+        db.actualizarItem(currentListaId, itemActualizado.getId(), itemActualizado, null);
     }
-
     public void setCurrentListaId(String listaId) {
         this.currentListaId = listaId;
     }
-
     public void setCurrentListaNombre(String nombre) {
         this.currentListaNombre = nombre;
+    }
+    @Override
+    protected void onCleared() {
+        super.onCleared();
+        if (itemsListener != null) {
+            itemsListener.remove();
+            itemsListener = null;
+        }
     }
 }

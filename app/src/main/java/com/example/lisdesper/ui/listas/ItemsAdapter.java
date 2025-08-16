@@ -22,7 +22,6 @@ public class ItemsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     }
     private List<ListEntry> entries;
     private OnItemCheckedChangeListener checkedListener;
-
     public ItemsAdapter(List<ListEntry> entries, OnItemCheckedChangeListener checkedListener) {
         this.entries = entries;
         this.checkedListener = checkedListener;

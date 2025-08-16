@@ -58,23 +58,40 @@ public class ListasFragment extends Fragment {
         binding.recyclerViewListas.setLayoutManager(new LinearLayoutManager(getContext()));
         binding.recyclerViewListas.setAdapter(adapter);
 
+        // Observar el estado de carga
+        listasViewModel.getIsLoading().observe(getViewLifecycleOwner(), isLoading -> {
+            if (isLoading != null) {
+                binding.loadingContainer.setVisibility(isLoading ? View.VISIBLE : View.GONE);
+                binding.fabAgregarLista.setEnabled(!isLoading);
+                binding.btnToggleCancelados.setEnabled(!isLoading);
+            }
+        });
+
         listasViewModel.getListas().observe(getViewLifecycleOwner(), listas -> {
             actualizarLista();
         });
 
         binding.fabAgregarLista.setOnClickListener(v -> {
-            mostrarDialogoAgregarItem();
+            Boolean isLoading = listasViewModel.getIsLoading().getValue();
+            if (isLoading == null || !isLoading) {
+                mostrarDialogoAgregarItem();
+            }
         });
-        setButtonIconAndText(mostrarCancelados);
 
         binding.btnToggleCancelados.setOnClickListener(v -> {
-            mostrarCancelados = !mostrarCancelados;
-            setButtonIconAndText(mostrarCancelados);
-            actualizarLista();
+            Boolean isLoading = listasViewModel.getIsLoading().getValue();
+            if (isLoading == null || !isLoading) {
+                mostrarCancelados = !mostrarCancelados;
+                setButtonIconAndText(mostrarCancelados);
+                actualizarLista();
+            }
         });
+
+        setButtonIconAndText(mostrarCancelados);
 
         return binding.getRoot();
     }
+
     private void setButtonIconAndText(boolean mostrarCancelados) {
         int drawableRes = mostrarCancelados ? R.drawable.ic_close_eye : R.drawable.ic_open_eye;
         Drawable drawable = ContextCompat.getDrawable(requireContext(), drawableRes);

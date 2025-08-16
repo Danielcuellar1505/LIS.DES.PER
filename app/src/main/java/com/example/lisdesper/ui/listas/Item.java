@@ -15,7 +15,6 @@ public class Item {
     private double monto;
     private boolean cancelado;
     private String fecha;
-
     public Item(String id, String nombre, String detalle, double monto, boolean cancelado) {
         this.id = id;
         this.nombre = nombre;
@@ -24,8 +23,6 @@ public class Item {
         this.cancelado = cancelado;
         this.fecha = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
     }
-
-
     public Map<String, Object> toMap() {
         Map<String, Object> map = new HashMap<>();
         map.put("nombre", nombre);
@@ -35,7 +32,6 @@ public class Item {
         map.put("fecha", FieldValue.serverTimestamp());
         return map;
     }
-    // Constructor para nuevos items (sin ID)
     public Item(String nombre, String detalle, double monto, boolean cancelado) {
         this("", nombre, detalle, monto, cancelado);
     }
@@ -43,19 +39,15 @@ public class Item {
     public String getNombre() {
         return nombre;
     }
-
     public String getDetalle() {
         return detalle;
     }
-
     public double getMonto() {
         return monto;
     }
-
     public boolean isCancelado() {
         return cancelado;
     }
-
     public String getFecha() {
         return fecha;
     }
@@ -67,15 +59,12 @@ public class Item {
     public void setNombre(String nombre) {
         this.nombre = nombre;
     }
-
     public void setDetalle(String detalle) {
         this.detalle = detalle;
     }
-
     public void setMonto(double monto) {
         this.monto = monto;
     }
-
     public void setFecha(String fecha) {
         this.fecha = fecha;
     }

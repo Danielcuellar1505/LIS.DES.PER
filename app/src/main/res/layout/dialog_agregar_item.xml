@@ -1,31 +1,56 @@
-<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:padding="20dp"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Nombre"
+        android:textColor="?attr/colorOnBackground"
+        android:textStyle="bold"
+        android:layout_marginBottom="4dp"/>
     <EditText
         android:id="@+id/etNombre"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColor="?attr/colorOnBackground"
-        android:hint="Nombre"/>
+        android:background="@drawable/rounded_edittext"
+        android:padding="12dp"
+        android:textColor="?attr/colorOnBackground"/>
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Detalle"
+        android:textColor="?attr/colorOnBackground"
+        android:textStyle="bold"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="4dp"/>
     <EditText
         android:id="@+id/etDetalle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColor="?attr/colorOnBackground"
-        android:hint="Detalle"
+        android:background="@drawable/rounded_edittext"
         android:inputType="textMultiLine"
-        android:gravity="top"/>
+        android:gravity="top"
+        android:padding="12dp"
+        android:textColor="?attr/colorOnBackground"/>
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Monto"
+        android:textColor="?attr/colorOnBackground"
+        android:textStyle="bold"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="4dp"/>
     <EditText
         android:id="@+id/etMonto"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColor="?attr/colorOnBackground"
-        android:hint="Monto"
-        android:inputType="numberDecimal"/>
+        android:background="@drawable/rounded_edittext"
+        android:inputType="numberDecimal"
+        android:padding="12dp"
+        android:textColor="?attr/colorOnBackground"/>
 </LinearLayout>

@@ -19,7 +19,7 @@ import java.util.Map;
 public class CBaseDatos {
     private static CBaseDatos instance;
     private final FirebaseFirestore db;
-    private final CollectionReference listasCollection;
+    public final CollectionReference listasCollection;
     private CBaseDatos() {
         db = FirebaseFirestore.getInstance();
         listasCollection = db.collection("BD_LIS_DES_PER");
@@ -40,7 +40,6 @@ public class CBaseDatos {
         itemData.put("fecha", fechaStr);
 
         if (listaId == null || listaId.isEmpty()) {
-            // Crear nueva lista si no existe
             Map<String, Object> nuevaLista = new HashMap<>();
             nuevaLista.put("nombre", "Lista Principal");
             nuevaLista.put("fechaCreacion", FieldValue.serverTimestamp());
@@ -55,7 +54,6 @@ public class CBaseDatos {
         } else {
             listasCollection.document(listaId).collection("items").add(itemData)
                     .addOnSuccessListener(documentReference -> {
-                        // Asignamos el ID generado por Firestore al item
                         item.setId(documentReference.getId());
                         if (listener != null) listener.onComplete(item, null);
                     })
@@ -80,42 +78,28 @@ public class CBaseDatos {
                     if (listener != null) listener.onComplete(null, e);
                 });
     }
-    public void obtenerListaPrincipal(OnCompleteListener<Map.Entry<String, List<Item>>> listener) {
+    public void obtenerListaPrincipal(OnCompleteListener<String> listener) {
         listasCollection.limit(1).get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     if (!queryDocumentSnapshots.isEmpty()) {
                         DocumentSnapshot document = queryDocumentSnapshots.getDocuments().get(0);
-                        String listaId = document.getId();
-
-                        obtenerItemsDeLista(listaId, new OnCompleteListener<List<Item>>() {
-                            @Override
-                            public void onComplete(List<Item> items, Exception e) {
-                                if (e != null) {
-                                    listener.onComplete(null, e);
-                                    return;
-                                }
-                                Map.Entry<String, List<Item>> result =
-                                        new HashMap.SimpleEntry<>(listaId, items);
-                                listener.onComplete(result, null);
-                            }
-                        });
+                        if (listener != null) listener.onComplete(document.getId(), null);
                     } else {
                         Map<String, Object> nuevaLista = new HashMap<>();
                         nuevaLista.put("nombre", "Lista Principal");
+                        nuevaLista.put("fechaCreacion", FieldValue.serverTimestamp());
 
                         listasCollection.add(nuevaLista)
                                 .addOnSuccessListener(documentReference -> {
-                                    Map.Entry<String, List<Item>> result =
-                                            new HashMap.SimpleEntry<>(documentReference.getId(), new ArrayList<>());
-                                    listener.onComplete(result, null);
+                                    if (listener != null) listener.onComplete(documentReference.getId(), null);
                                 })
                                 .addOnFailureListener(e -> {
-                                    listener.onComplete(null, e);
+                                    if (listener != null) listener.onComplete(null, e);
                                 });
                     }
                 })
                 .addOnFailureListener(e -> {
-                    listener.onComplete(null, e);
+                    if (listener != null) listener.onComplete(null, e);
                 });
     }
     private void obtenerItemsDeLista(String listaId, OnCompleteListener<List<Item>> listener) {
