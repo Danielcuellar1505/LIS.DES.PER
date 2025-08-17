@@ -7,8 +7,8 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Nombre"
-        android:textColor="?attr/colorOnBackground"
+        android:text="Nombre:"
+        android:textColor="@color/colorOnPrimary"
         android:textStyle="bold"
         android:layout_marginBottom="4dp"/>
     <EditText
@@ -22,8 +22,8 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Detalle"
-        android:textColor="?attr/colorOnBackground"
+        android:text="Detalle:"
+        android:textColor="@color/colorOnPrimary"
         android:textStyle="bold"
         android:layout_marginTop="12dp"
         android:layout_marginBottom="4dp"/>
@@ -40,8 +40,8 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Monto"
-        android:textColor="?attr/colorOnBackground"
+        android:text="Monto:"
+        android:textColor="@color/colorOnPrimary"
         android:textStyle="bold"
         android:layout_marginTop="12dp"
         android:layout_marginBottom="4dp"/>

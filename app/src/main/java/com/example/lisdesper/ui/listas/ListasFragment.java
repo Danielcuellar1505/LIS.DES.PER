@@ -3,12 +3,16 @@ package com.example.lisdesper.ui.listas;
 import android.app.AlertDialog;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.InputType;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.ViewSwitcher;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -32,7 +36,8 @@ public class ListasFragment extends Fragment {
     private ListasViewModel listasViewModel;
     private ItemsAdapterLista adapter;
     private boolean mostrarCancelados = false;
-
+    private AlertDialog loadingDialog;
+    private AlertDialog cancellationDialog;
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -41,7 +46,7 @@ public class ListasFragment extends Fragment {
         binding = FragmentListasBinding.inflate(inflater, container, false);
 
         adapter = new ItemsAdapterLista(new ArrayList<>(),
-                (originalIndex, isChecked) -> {
+                (originalIndex, isChecked, item) -> {
                     List<Lista> listas = listasViewModel.getListas().getValue();
                     if (listas != null && !listas.isEmpty()) {
                         Lista primera = listas.get(0);
@@ -51,7 +56,16 @@ public class ListasFragment extends Fragment {
                             binding.recyclerViewListas.post(() ->
                                     listasViewModel.actualizarItem(0, originalIndex, it)
                             );
+                            if (isChecked) {
+                                showReusableDialog(false, item.getNombre(), item.getMonto());
+                            }
                         }
+                    }
+                },
+                (originalIndex, item) -> {
+                    Boolean isLoading = listasViewModel.getIsLoading().getValue();
+                    if (isLoading == null || !isLoading) {
+                        mostrarDialogoEditarItem(item, originalIndex);
                     }
                 });
 
@@ -60,7 +74,13 @@ public class ListasFragment extends Fragment {
 
         listasViewModel.getIsLoading().observe(getViewLifecycleOwner(), isLoading -> {
             if (isLoading != null) {
-                binding.loadingContainer.setVisibility(isLoading ? View.VISIBLE : View.GONE);
+                if (isLoading) {
+                    showReusableDialog(true, null, 0.0);
+                } else {
+                    if (loadingDialog != null && loadingDialog.isShowing()) {
+                        loadingDialog.dismiss();
+                    }
+                }
                 binding.fabAgregarLista.setEnabled(!isLoading);
                 binding.btnToggleCancelados.setEnabled(!isLoading);
             }
@@ -155,7 +175,73 @@ public class ListasFragment extends Fragment {
                 .setNegativeButton("Cancelar", null)
                 .show();
     }
+    private void mostrarDialogoEditarItem(ItemLista item, int originalIndex) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+        View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.lista_dialog_agregar_item, null);
 
+        EditText etNombre = dialogView.findViewById(R.id.etNombre);
+        EditText etDetalle = dialogView.findViewById(R.id.etDetalle);
+        EditText etMonto = dialogView.findViewById(R.id.etMonto);
+        etMonto.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+
+        etNombre.setText(item.getNombre());
+        etDetalle.setText(item.getDetalle());
+        etMonto.setText(String.format(Locale.getDefault(), "%.2f", item.getMonto()));
+
+        builder.setView(dialogView)
+                .setTitle("Editar Ítem")
+                .setPositiveButton("Guardar", (dialog, which) -> {
+                    String nombre = etNombre.getText().toString().trim();
+                    String detalle = etDetalle.getText().toString().trim();
+                    String montoStr = etMonto.getText().toString().trim();
+                    if (nombre.isEmpty() || detalle.isEmpty() || montoStr.isEmpty()) {
+                        Toast.makeText(getContext(), "Por favor ingresa nombre, detalle y monto", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    double monto;
+                    try {
+                        monto = Double.parseDouble(montoStr);
+                    } catch (NumberFormatException e) {
+                        Toast.makeText(getContext(), "Monto inválido", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    ItemLista actualizado = new ItemLista(item.getId(), nombre, detalle, monto, item.isCancelado());
+                    actualizado.setFecha(item.getFecha());
+                    listasViewModel.actualizarItem(0, originalIndex, actualizado);
+                })
+                .setNegativeButton("Cancelar", null)
+                .show();
+    }
+    private void showReusableDialog(boolean isLoadingMode, String nombre, double monto) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+        View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_reutilizable, null);
+        ViewSwitcher viewSwitcher = dialogView.findViewById(R.id.viewSwitcher);
+        TextView tvMensajeCancelacion = dialogView.findViewById(R.id.tvMensajeCancelacion);
+
+        if (isLoadingMode) {
+            viewSwitcher.setDisplayedChild(0);
+            builder.setCancelable(false);
+        } else {
+            viewSwitcher.setDisplayedChild(1);
+            tvMensajeCancelacion.setText(String.format(Locale.getDefault(), "%s canceló %.2f Bs", nombre, monto));
+            builder.setCancelable(true);
+            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                if (cancellationDialog != null && cancellationDialog.isShowing()) {
+                    cancellationDialog.dismiss();
+                }
+            }, 2000);
+        }
+
+        AlertDialog dialog = builder.setView(dialogView).create();
+        if (isLoadingMode) {
+            loadingDialog = dialog;
+        } else {
+            cancellationDialog = dialog;
+        }
+        dialog.show();
+    }
     private String formatearFechaParaMostrar(String fechaIso) {
         if (fechaIso == null) return "";
         try {
@@ -177,15 +263,19 @@ public class ListasFragment extends Fragment {
             return fechaIso;
         }
     }
-
     private boolean isSameDay(Calendar c1, Calendar c2) {
         return c1.get(Calendar.YEAR) == c2.get(Calendar.YEAR)
                 && c1.get(Calendar.DAY_OF_YEAR) == c2.get(Calendar.DAY_OF_YEAR);
     }
-
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        if (loadingDialog != null && loadingDialog.isShowing()) {
+            loadingDialog.dismiss();
+        }
+        if (cancellationDialog != null && cancellationDialog.isShowing()) {
+            cancellationDialog.dismiss();
+        }
         binding = null;
     }
 }

@@ -15,13 +15,19 @@ import java.util.List;
 
 public class ItemsAdapterLista extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     public interface OnItemCheckedChangeListener {
-        void onItemCheckedChanged(int originalItemIndex, boolean isChecked);
+        void onItemCheckedChanged(int originalItemIndex, boolean isChecked, ItemLista item);
+    }
+    public interface OnItemClickListener {
+        void onItemClick(int originalItemIndex, ItemLista item);
     }
     private List<ListaEntry> entries;
     private OnItemCheckedChangeListener checkedListener;
-    public ItemsAdapterLista(List<ListaEntry> entries, OnItemCheckedChangeListener checkedListener) {
+    private OnItemClickListener clickListener;
+
+    public ItemsAdapterLista(List<ListaEntry> entries, OnItemCheckedChangeListener checkedListener, OnItemClickListener clickListener) {
         this.entries = entries;
         this.checkedListener = checkedListener;
+        this.clickListener = clickListener;
     }
     public void setItems(List<ListaEntry> nuevos) {
         this.entries = nuevos;
@@ -60,7 +66,12 @@ public class ItemsAdapterLista extends RecyclerView.Adapter<RecyclerView.ViewHol
             iv.cbCancelado.setOnCheckedChangeListener((buttonView, isChecked) -> {
                 itemLista.setCancelado(isChecked);
                 if (checkedListener != null) {
-                    checkedListener.onItemCheckedChanged(entry.getOriginalIndex(), isChecked);
+                    checkedListener.onItemCheckedChanged(entry.getOriginalIndex(), isChecked, itemLista);
+                }
+            });
+            iv.itemView.setOnClickListener(v -> {
+                if (clickListener != null) {
+                    clickListener.onItemClick(entry.getOriginalIndex(), itemLista);
                 }
             });
         }
@@ -79,7 +90,6 @@ public class ItemsAdapterLista extends RecyclerView.Adapter<RecyclerView.ViewHol
     static class ItemViewHolder extends RecyclerView.ViewHolder {
         TextView tvNombre, tvDetalle, tvMonto;
         CheckBox cbCancelado;
-
         ItemViewHolder(@NonNull View itemView) {
             super(itemView);
             tvNombre = itemView.findViewById(R.id.tvNombre);
