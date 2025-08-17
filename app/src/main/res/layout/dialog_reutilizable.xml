@@ -22,7 +22,8 @@
                 android:id="@+id/loadingSpinner"
                 android:layout_width="64dp"
                 android:layout_height="64dp"
-                android:indeterminate="true" />
+                android:indeterminate="true"
+                android:indeterminateTint="@color/colorPrimary" />
 
             <TextView
                 android:id="@+id/tvLoadingMessage"
@@ -31,8 +32,9 @@
                 android:layout_marginTop="16dp"
                 android:text="Cargando..."
                 android:textSize="18sp"
-                android:textColor="@color/colorSecondary"
+                android:textColor="@color/colorPrimary"
                 android:fontFamily="sans-serif-medium" />
+
         </LinearLayout>
 
         <LinearLayout
