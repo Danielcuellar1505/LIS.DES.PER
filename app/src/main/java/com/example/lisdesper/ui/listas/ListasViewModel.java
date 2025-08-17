@@ -44,10 +44,10 @@ public class ListasViewModel extends ViewModel {
                             isLoading.postValue(false);
                             return;
                         }
-                        List<Item> newItems = new ArrayList<>();
+                        List<ItemLista> newItemListas = new ArrayList<>();
                         for (QueryDocumentSnapshot doc : querySnapshot) {
                             double monto = doc.getDouble("monto") != null ? doc.getDouble("monto") : 0.0;
-                            Item item = new Item(
+                            ItemLista itemLista = new ItemLista(
                                     doc.getId(),
                                     doc.getString("nombre"),
                                     doc.getString("detalle"),
@@ -56,18 +56,18 @@ public class ListasViewModel extends ViewModel {
                             );
                             String fechaStr = doc.getString("fecha");
                             if (fechaStr != null) {
-                                item.setFecha(fechaStr);
+                                itemLista.setFecha(fechaStr);
                             }
-                            newItems.add(item);
+                            newItemListas.add(itemLista);
                         }
-                        Collections.sort(newItems, (a, b) -> {
+                        Collections.sort(newItemListas, (a, b) -> {
                             if (a.getFecha() == null) return 1;
                             if (b.getFecha() == null) return -1;
                             return b.getFecha().compareTo(a.getFecha());
                         });
                         List<Lista> updated = listas.getValue();
                         if (updated != null && !updated.isEmpty()) {
-                            updated.get(0).setItems(newItems);
+                            updated.get(0).setItems(newItemListas);
                             listas.postValue(updated);
                         }
                         isLoading.postValue(false);
@@ -77,30 +77,16 @@ public class ListasViewModel extends ViewModel {
     public LiveData<List<Lista>> getListas() {
         return listas;
     }
-    public void agregarItem(int posicionLista, Item item) {
-        db.agregarItem(currentListaId, item, null);
+    public void agregarItem(int posicionLista, ItemLista itemLista) {
+        db.agregarItem(currentListaId, itemLista, null);
     }
     public LiveData<Boolean> getIsLoading() {
         return isLoading;
     }
-    public void actualizarItem(int posicionLista, int posicionItem, Item itemActualizado) {
-        if (itemActualizado.getId() == null || itemActualizado.getId().isEmpty()) {
+    public void actualizarItem(int posicionLista, int posicionItem, ItemLista itemListaActualizado) {
+        if (itemListaActualizado.getId() == null || itemListaActualizado.getId().isEmpty()) {
             return;
         }
-        db.actualizarItem(currentListaId, itemActualizado.getId(), itemActualizado, null);
-    }
-    public void setCurrentListaId(String listaId) {
-        this.currentListaId = listaId;
-    }
-    public void setCurrentListaNombre(String nombre) {
-        this.currentListaNombre = nombre;
-    }
-    @Override
-    protected void onCleared() {
-        super.onCleared();
-        if (itemsListener != null) {
-            itemsListener.remove();
-            itemsListener = null;
-        }
+        db.actualizarItem(currentListaId, itemListaActualizado.getId(), itemListaActualizado, null);
     }
 }

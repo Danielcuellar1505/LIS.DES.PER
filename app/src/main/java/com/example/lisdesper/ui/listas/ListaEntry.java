@@ -1,29 +1,29 @@
 package com.example.lisdesper.ui.listas;
 
-public class ListEntry {
+public class ListaEntry {
     public static final int TYPE_HEADER = 0;
     public static final int TYPE_ITEM = 1;
 
     private int type;
     private String fecha;
-    private Item item;
+    private ItemLista itemLista;
     private int originalIndex;
-    private ListEntry(int type) {
+    private ListaEntry(int type) {
         this.type = type;
     }
-    public static ListEntry header(String fecha) {
-        ListEntry e = new ListEntry(TYPE_HEADER);
+    public static ListaEntry header(String fecha) {
+        ListaEntry e = new ListaEntry(TYPE_HEADER);
         e.fecha = fecha;
         return e;
     }
-    public static ListEntry item(Item item, int originalIndex) {
-        ListEntry e = new ListEntry(TYPE_ITEM);
-        e.item = item;
+    public static ListaEntry item(ItemLista itemLista, int originalIndex) {
+        ListaEntry e = new ListaEntry(TYPE_ITEM);
+        e.itemLista = itemLista;
         e.originalIndex = originalIndex;
         return e;
     }
     public int getType() { return type; }
     public String getFecha() { return fecha; }
-    public Item getItem() { return item; }
+    public ItemLista getItem() { return itemLista; }
     public int getOriginalIndex() { return originalIndex; }
 }

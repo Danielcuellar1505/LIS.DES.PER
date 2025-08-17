@@ -30,7 +30,7 @@ import java.util.Locale;
 public class ListasFragment extends Fragment {
     private FragmentListasBinding binding;
     private ListasViewModel listasViewModel;
-    private ItemsAdapter adapter;
+    private ItemsAdapterLista adapter;
     private boolean mostrarCancelados = false;
 
     @Override
@@ -40,13 +40,13 @@ public class ListasFragment extends Fragment {
         listasViewModel = new ViewModelProvider(this).get(ListasViewModel.class);
         binding = FragmentListasBinding.inflate(inflater, container, false);
 
-        adapter = new ItemsAdapter(new ArrayList<>(),
+        adapter = new ItemsAdapterLista(new ArrayList<>(),
                 (originalIndex, isChecked) -> {
                     List<Lista> listas = listasViewModel.getListas().getValue();
                     if (listas != null && !listas.isEmpty()) {
                         Lista primera = listas.get(0);
                         if (originalIndex >= 0 && originalIndex < primera.getItems().size()) {
-                            Item it = primera.getItems().get(originalIndex);
+                            ItemLista it = primera.getItems().get(originalIndex);
                             it.setCancelado(isChecked);
                             binding.recyclerViewListas.post(() ->
                                     listasViewModel.actualizarItem(0, originalIndex, it)
@@ -58,7 +58,6 @@ public class ListasFragment extends Fragment {
         binding.recyclerViewListas.setLayoutManager(new LinearLayoutManager(getContext()));
         binding.recyclerViewListas.setAdapter(adapter);
 
-        // Observar el estado de carga
         listasViewModel.getIsLoading().observe(getViewLifecycleOwner(), isLoading -> {
             if (isLoading != null) {
                 binding.loadingContainer.setVisibility(isLoading ? View.VISIBLE : View.GONE);
@@ -91,7 +90,6 @@ public class ListasFragment extends Fragment {
 
         return binding.getRoot();
     }
-
     private void setButtonIconAndText(boolean mostrarCancelados) {
         int drawableRes = mostrarCancelados ? R.drawable.ic_close_eye : R.drawable.ic_open_eye;
         Drawable drawable = ContextCompat.getDrawable(requireContext(), drawableRes);
@@ -102,32 +100,30 @@ public class ListasFragment extends Fragment {
         }
         binding.btnToggleCancelados.setText(mostrarCancelados ? "Ocultar" : "Mostrar");
     }
-
     private void actualizarLista() {
         List<Lista> listas = listasViewModel.getListas().getValue();
-        List<ListEntry> flattened = new ArrayList<>();
+        List<ListaEntry> flattened = new ArrayList<>();
         if (listas != null && !listas.isEmpty()) {
             Lista primera = listas.get(0);
-            List<Item> items = primera.getItems();
+            List<ItemLista> itemListas = primera.getItems();
             String lastFecha = null;
-            for (int i = 0; i < items.size(); i++) {
-                Item it = items.get(i);
+            for (int i = 0; i < itemListas.size(); i++) {
+                ItemLista it = itemListas.get(i);
                 if (mostrarCancelados || !it.isCancelado()) {
                     String fecha = it.getFecha();
                     if (lastFecha == null || !lastFecha.equals(fecha)) {
-                        flattened.add(ListEntry.header(formatearFechaParaMostrar(fecha)));
+                        flattened.add(ListaEntry.header(formatearFechaParaMostrar(fecha)));
                         lastFecha = fecha;
                     }
-                    flattened.add(ListEntry.item(it, i));
+                    flattened.add(ListaEntry.item(it, i));
                 }
             }
         }
         adapter.setItems(flattened);
     }
-
     private void mostrarDialogoAgregarItem() {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
-        View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_agregar_item, null);
+        View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.lista_dialog_agregar_item, null);
 
         EditText etNombre = dialogView.findViewById(R.id.etNombre);
         EditText etDetalle = dialogView.findViewById(R.id.etDetalle);
@@ -153,7 +149,7 @@ public class ListasFragment extends Fragment {
                         return;
                     }
 
-                    Item nuevo = new Item(nombre, detalle, monto, false);
+                    ItemLista nuevo = new ItemLista(nombre, detalle, monto, false);
                     listasViewModel.agregarItem(0, nuevo);
                 })
                 .setNegativeButton("Cancelar", null)

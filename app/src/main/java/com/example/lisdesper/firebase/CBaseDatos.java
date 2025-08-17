@@ -1,12 +1,11 @@
 package com.example.lisdesper.firebase;
 
-import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.example.lisdesper.ui.listas.Item;
+import com.example.lisdesper.ui.listas.ItemLista;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -30,13 +29,13 @@ public class CBaseDatos {
         }
         return instance;
     }
-    public void agregarItem(String listaId, Item item, OnCompleteListener<Item> listener) {
+    public void agregarItem(String listaId, ItemLista itemLista, OnCompleteListener<ItemLista> listener) {
         String fechaStr = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
         Map<String, Object> itemData = new HashMap<>();
-        itemData.put("nombre", item.getNombre());
-        itemData.put("detalle", item.getDetalle());
-        itemData.put("monto", item.getMonto());
-        itemData.put("cancelado", item.isCancelado());
+        itemData.put("nombre", itemLista.getNombre());
+        itemData.put("detalle", itemLista.getDetalle());
+        itemData.put("monto", itemLista.getMonto());
+        itemData.put("cancelado", itemLista.isCancelado());
         itemData.put("fecha", fechaStr);
 
         if (listaId == null || listaId.isEmpty()) {
@@ -46,7 +45,7 @@ public class CBaseDatos {
 
             listasCollection.add(nuevaLista)
                     .addOnSuccessListener(documentReference -> {
-                        agregarItem(documentReference.getId(), item, listener);
+                        agregarItem(documentReference.getId(), itemLista, listener);
                     })
                     .addOnFailureListener(e -> {
                         if (listener != null) listener.onComplete(null, e);
@@ -54,21 +53,21 @@ public class CBaseDatos {
         } else {
             listasCollection.document(listaId).collection("items").add(itemData)
                     .addOnSuccessListener(documentReference -> {
-                        item.setId(documentReference.getId());
-                        if (listener != null) listener.onComplete(item, null);
+                        itemLista.setId(documentReference.getId());
+                        if (listener != null) listener.onComplete(itemLista, null);
                     })
                     .addOnFailureListener(e -> {
                         if (listener != null) listener.onComplete(null, e);
                     });
         }
     }
-    public void actualizarItem(String listaId, String itemId, Item item, OnCompleteListener<Void> listener) {
+    public void actualizarItem(String listaId, String itemId, ItemLista itemLista, OnCompleteListener<Void> listener) {
         Map<String, Object> updates = new HashMap<>();
-        updates.put("nombre", item.getNombre());
-        updates.put("detalle", item.getDetalle());
-        updates.put("monto", item.getMonto());
-        updates.put("cancelado", item.isCancelado());
-        updates.put("fecha", item.getFecha());
+        updates.put("nombre", itemLista.getNombre());
+        updates.put("detalle", itemLista.getDetalle());
+        updates.put("monto", itemLista.getMonto());
+        updates.put("cancelado", itemLista.isCancelado());
+        updates.put("fecha", itemLista.getFecha());
 
         listasCollection.document(listaId).collection("items").document(itemId).update(updates)
                 .addOnSuccessListener(aVoid -> {
@@ -102,12 +101,12 @@ public class CBaseDatos {
                     if (listener != null) listener.onComplete(null, e);
                 });
     }
-    private void obtenerItemsDeLista(String listaId, OnCompleteListener<List<Item>> listener) {
+    private void obtenerItemsDeLista(String listaId, OnCompleteListener<List<ItemLista>> listener) {
         listasCollection.document(listaId).collection("items").get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
-                    List<Item> items = new ArrayList<>();
+                    List<ItemLista> itemListas = new ArrayList<>();
                     for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
-                        Item item = new Item(
+                        ItemLista itemLista = new ItemLista(
                                 document.getId(),
                                 document.getString("nombre"),
                                 document.getString("detalle"),
@@ -116,11 +115,11 @@ public class CBaseDatos {
                         );
                         String fechaStr = document.getString("fecha");
                         if (fechaStr != null) {
-                            item.setFecha(fechaStr);
+                            itemLista.setFecha(fechaStr);
                         }
-                        items.add(item);
+                        itemListas.add(itemLista);
                     }
-                    if (listener != null) listener.onComplete(items, null);
+                    if (listener != null) listener.onComplete(itemListas, null);
                 })
                 .addOnFailureListener(e -> {
                     if (listener != null) listener.onComplete(null, e);

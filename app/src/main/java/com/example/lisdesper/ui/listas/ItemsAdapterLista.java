@@ -1,32 +1,29 @@
 package com.example.lisdesper.ui.listas;
 
-import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.lisdesper.R;
 
 import java.util.List;
 
-public class ItemsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+public class ItemsAdapterLista extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     public interface OnItemCheckedChangeListener {
         void onItemCheckedChanged(int originalItemIndex, boolean isChecked);
     }
-    private List<ListEntry> entries;
+    private List<ListaEntry> entries;
     private OnItemCheckedChangeListener checkedListener;
-    public ItemsAdapter(List<ListEntry> entries, OnItemCheckedChangeListener checkedListener) {
+    public ItemsAdapterLista(List<ListaEntry> entries, OnItemCheckedChangeListener checkedListener) {
         this.entries = entries;
         this.checkedListener = checkedListener;
     }
-    public void setItems(List<ListEntry> nuevos) {
+    public void setItems(List<ListaEntry> nuevos) {
         this.entries = nuevos;
         notifyDataSetChanged();
     }
@@ -37,31 +34,31 @@ public class ItemsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        if (viewType == ListEntry.TYPE_HEADER) {
-            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.header_row, parent, false);
+        if (viewType == ListaEntry.TYPE_HEADER) {
+            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.lista_header_row, parent, false);
             return new HeaderViewHolder(v);
         } else {
-            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_row, parent, false);
+            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.lista_item_row, parent, false);
             return new ItemViewHolder(v);
         }
     }
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-        ListEntry entry = entries.get(position);
-        if (entry.getType() == ListEntry.TYPE_HEADER) {
+        ListaEntry entry = entries.get(position);
+        if (entry.getType() == ListaEntry.TYPE_HEADER) {
             HeaderViewHolder hv = (HeaderViewHolder) holder;
             hv.tvHeaderFecha.setText(entry.getFecha());
         } else {
             ItemViewHolder iv = (ItemViewHolder) holder;
-            Item item = entry.getItem();
+            ItemLista itemLista = entry.getItem();
 
-            iv.tvNombre.setText(item.getNombre());
-            iv.tvDetalle.setText(item.getDetalle());
-            iv.tvMonto.setText(String.format("%.2f", item.getMonto()));
+            iv.tvNombre.setText(itemLista.getNombre());
+            iv.tvDetalle.setText(itemLista.getDetalle());
+            iv.tvMonto.setText(String.format("%.2f", itemLista.getMonto()));
             iv.cbCancelado.setOnCheckedChangeListener(null);
-            iv.cbCancelado.setChecked(item.isCancelado());
+            iv.cbCancelado.setChecked(itemLista.isCancelado());
             iv.cbCancelado.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                item.setCancelado(isChecked);
+                itemLista.setCancelado(isChecked);
                 if (checkedListener != null) {
                     checkedListener.onItemCheckedChanged(entry.getOriginalIndex(), isChecked);
                 }
