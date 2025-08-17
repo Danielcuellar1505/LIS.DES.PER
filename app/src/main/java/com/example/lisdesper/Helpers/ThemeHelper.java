@@ -1,10 +1,12 @@
-package com.example.lisdesper;
+package com.example.lisdesper.Helpers;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.widget.ImageButton;
 
 import androidx.appcompat.app.AppCompatDelegate;
+
+import com.example.lisdesper.R;
 
 public class ThemeHelper {
 
