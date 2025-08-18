@@ -46,7 +46,8 @@
             android:layout_marginLeft="8dp"
             android:layout_marginEnd="4dp"
             android:layout_marginRight="4dp"
-            android:text="" />
+            android:text=""
+            android:buttonTint="?attr/colorSecondary"/>
     </LinearLayout>
 
     <View
