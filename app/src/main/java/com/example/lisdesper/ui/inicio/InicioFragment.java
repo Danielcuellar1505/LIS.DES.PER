@@ -86,6 +86,8 @@ public class InicioFragment extends Fragment {
         pieChart.setEntryLabelColor(colorOnPrimary);
         pieChart.setEntryLabelTextSize(12f);
         pieChart.getLegend().setEnabled(true);
+        pieChart.getLegend().setTextColor(colorOnPrimary);
+        pieChart.setDrawEntryLabels(false);
     }
     private void updatePieChart(int cancelados, int noCancelados) {
         List<PieEntry> entries = new ArrayList<>();
@@ -110,6 +112,7 @@ public class InicioFragment extends Fragment {
                 return String.format(Locale.getDefault(), "%.0f", value);
             }
         });
+
 
 
         PieData data = new PieData(dataSet);
