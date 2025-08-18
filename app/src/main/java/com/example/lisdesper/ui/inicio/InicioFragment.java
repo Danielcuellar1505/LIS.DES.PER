@@ -1,7 +1,10 @@
 package com.example.lisdesper.ui.inicio;
 
 import android.app.AlertDialog;
+import android.content.res.TypedArray;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,6 +22,7 @@ import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
+import com.github.mikephil.charting.formatter.ValueFormatter;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -41,7 +45,6 @@ public class InicioFragment extends Fragment {
 
         setupPieChart();
         setupRecyclerView();
-
         String todayDate = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(new Date());
         binding.tvTodayItemsTitle.setText("Deudas de hoy (" + todayDate + ")");
 
@@ -69,15 +72,20 @@ public class InicioFragment extends Fragment {
     }
     private void setupPieChart() {
         PieChart pieChart = binding.pieChart;
-        pieChart.setUsePercentValues(true);
+        pieChart.setUsePercentValues(false);
         pieChart.getDescription().setEnabled(false);
         pieChart.setDrawHoleEnabled(true);
         pieChart.setHoleColor(android.R.color.transparent);
         pieChart.setHoleRadius(50f);
         pieChart.setTransparentCircleRadius(55f);
-        pieChart.setDrawEntryLabels(false);
-        pieChart.getLegend().setEnabled(true);
+        pieChart.setDrawEntryLabels(true);
+        TypedArray typedArray = requireContext().getTheme().obtainStyledAttributes(
+                new int[]{com.google.android.material.R.attr.colorOnPrimary});
+        int colorOnPrimary = typedArray.getColor(0, 0);
+        typedArray.recycle();
+        pieChart.setEntryLabelColor(colorOnPrimary);
         pieChart.setEntryLabelTextSize(12f);
+        pieChart.getLegend().setEnabled(true);
     }
     private void updatePieChart(int cancelados, int noCancelados) {
         List<PieEntry> entries = new ArrayList<>();
@@ -90,11 +98,21 @@ public class InicioFragment extends Fragment {
                 requireContext().getResources().getColor(R.color.colorSecondary)
         });
         dataSet.setValueTextSize(14f);
-        dataSet.setValueTextColor(android.R.color.white);
+        TypedArray typedArray = requireContext().getTheme().obtainStyledAttributes(
+                new int[]{com.google.android.material.R.attr.colorOnPrimary});
+        int colorOnPrimary = typedArray.getColor(0, 0);
+        typedArray.recycle();
+        dataSet.setValueTextColor(colorOnPrimary);
+
+        dataSet.setValueFormatter(new ValueFormatter() {
+            @Override
+            public String getPieLabel(float value, PieEntry pieEntry) {
+                return String.format(Locale.getDefault(), "%.0f", value);
+            }
+        });
+
 
         PieData data = new PieData(dataSet);
-        data.setValueFormatter(new com.github.mikephil.charting.formatter.PercentFormatter(binding.pieChart));
-
         binding.pieChart.setData(data);
         binding.pieChart.invalidate();
     }
@@ -103,22 +121,18 @@ public class InicioFragment extends Fragment {
         binding.recyclerViewTodayItems.setLayoutManager(new LinearLayoutManager(getContext()));
         binding.recyclerViewTodayItems.setAdapter(adapter);
     }
-
     private void updateRecyclerView(List<ItemLista> items) {
         adapter.setItems(items);
     }
-
     private void showLoadingDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
         View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_reutilizable, null);
         ViewSwitcher viewSwitcher = dialogView.findViewById(R.id.viewSwitcher);
         viewSwitcher.setDisplayedChild(0);
-
         builder.setView(dialogView).setCancelable(false);
         loadingDialog = builder.create();
         loadingDialog.show();
     }
-
     @Override
     public void onDestroyView() {
         super.onDestroyView();
