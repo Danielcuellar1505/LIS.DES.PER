@@ -145,3 +145,5 @@ public class InicioFragment extends Fragment {
         binding = null;
     }
 }
+
+//agregue el contcto pero luego regurese al ultimo commit que fue "AGREGADOS NUMEROS AL GRAFICO SIN TEXTO Y CAMBIO DE TEMA L TEXTO DE LOS INDICADORES"
