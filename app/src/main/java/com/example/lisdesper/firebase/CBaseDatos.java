@@ -19,20 +19,24 @@ public class CBaseDatos {
     private static CBaseDatos instance;
     private final FirebaseFirestore db;
     public final CollectionReference listasCollection;
+
     private CBaseDatos() {
         db = FirebaseFirestore.getInstance();
         listasCollection = db.collection("BD_LIS_DES_PER");
     }
+
     public static synchronized CBaseDatos getInstance() {
         if (instance == null) {
             instance = new CBaseDatos();
         }
         return instance;
     }
+
     public void agregarItem(String listaId, ItemLista itemLista, OnCompleteListener<ItemLista> listener) {
         String fechaStr = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
         Map<String, Object> itemData = new HashMap<>();
         itemData.put("nombre", itemLista.getNombre());
+        itemData.put("telefono", itemLista.getTelefono()); // Nuevo campo
         itemData.put("detalle", itemLista.getDetalle());
         itemData.put("monto", itemLista.getMonto());
         itemData.put("cancelado", itemLista.isCancelado());
@@ -61,9 +65,13 @@ public class CBaseDatos {
                     });
         }
     }
+
     public void actualizarItem(String listaId, String itemId, ItemLista itemLista, OnCompleteListener<Void> listener) {
         Map<String, Object> updates = new HashMap<>();
+
+
         updates.put("nombre", itemLista.getNombre());
+        updates.put("telefono", itemLista.getTelefono()); // Nuevo campo
         updates.put("detalle", itemLista.getDetalle());
         updates.put("monto", itemLista.getMonto());
         updates.put("cancelado", itemLista.isCancelado());
@@ -77,6 +85,7 @@ public class CBaseDatos {
                     if (listener != null) listener.onComplete(null, e);
                 });
     }
+
     public void obtenerListaPrincipal(OnCompleteListener<String> listener) {
         listasCollection.limit(1).get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
@@ -101,6 +110,7 @@ public class CBaseDatos {
                     if (listener != null) listener.onComplete(null, e);
                 });
     }
+
     private void obtenerItemsDeLista(String listaId, OnCompleteListener<List<ItemLista>> listener) {
         listasCollection.document(listaId).collection("items").get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
@@ -109,6 +119,7 @@ public class CBaseDatos {
                         ItemLista itemLista = new ItemLista(
                                 document.getId(),
                                 document.getString("nombre"),
+                                document.getString("telefono"), // Nuevo campo
                                 document.getString("detalle"),
                                 document.getDouble("monto"),
                                 Boolean.TRUE.equals(document.getBoolean("cancelado"))
@@ -125,6 +136,7 @@ public class CBaseDatos {
                     if (listener != null) listener.onComplete(null, e);
                 });
     }
+
     public interface OnCompleteListener<T> {
         void onComplete(T result, Exception e);
     }
