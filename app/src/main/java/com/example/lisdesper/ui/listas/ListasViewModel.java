@@ -19,12 +19,14 @@ public class ListasViewModel extends ViewModel {
     private String currentListaId;
     private String currentListaNombre = "Lista Principal";
     private ListenerRegistration itemsListener;
+
     public ListasViewModel() {
         listas = new MutableLiveData<>(new ArrayList<>());
         isLoading = new MutableLiveData<>(true);
         db = CBaseDatos.getInstance();
         cargarListaPrincipal();
     }
+
     private void cargarListaPrincipal() {
         isLoading.setValue(true);
         db.obtenerListaPrincipal((listaId, e) -> {
@@ -50,6 +52,7 @@ public class ListasViewModel extends ViewModel {
                             ItemLista itemLista = new ItemLista(
                                     doc.getId(),
                                     doc.getString("nombre"),
+                                    doc.getString("telefono"), // Nuevo campo
                                     doc.getString("detalle"),
                                     monto,
                                     Boolean.TRUE.equals(doc.getBoolean("cancelado"))
@@ -74,15 +77,19 @@ public class ListasViewModel extends ViewModel {
                     });
         });
     }
+
     public LiveData<List<Lista>> getListas() {
         return listas;
     }
+
     public void agregarItem(int posicionLista, ItemLista itemLista) {
         db.agregarItem(currentListaId, itemLista, null);
     }
+
     public LiveData<Boolean> getIsLoading() {
         return isLoading;
     }
+
     public void actualizarItem(int posicionLista, int posicionItem, ItemLista itemListaActualizado) {
         if (itemListaActualizado.getId() == null || itemListaActualizado.getId().isEmpty()) {
             return;
