@@ -1,39 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center_horizontal"
     android:background="@color/white">
+<View
+    android:layout_width="match_parent"
+    android:layout_height="100dp"/>
 
-    <ImageView
-        android:id="@+id/splash_icon"
-        android:layout_width="120dp"
-        android:layout_height="120dp"
-        android:layout_marginStart="156dp"
-        android:layout_marginTop="192dp"
-        android:layout_marginEnd="135dp"
-        android:contentDescription="Logo"
-        android:src="@drawable/icono"
-        app:layout_constraintBottom_toTopOf="@+id/splash_text"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0" />
+    <com.airbnb.lottie.LottieAnimationView
+        android:id="@+id/lottie_animation"
+        android:layout_width="300dp"
+        android:layout_height="300dp"
+        android:layout_marginBottom="32dp"
+        android:scaleType="centerInside"
+        app:lottie_autoPlay="true"
+        app:lottie_loop="true"
+        app:lottie_rawRes="@raw/todolist"
+        app:lottie_speed="1" />
 
     <TextView
         android:id="@+id/splash_text"
-        android:layout_width="284dp"
-        android:layout_height="43dp"
-        android:layout_marginBottom="344dp"
-        android:text="Listas de Deseos"
+        android:layout_width="133dp"
+        android:layout_height="45dp"
+        android:layout_marginTop="16dp"
+        android:text="Listas"
+        android:gravity="center"
         android:textColor="@color/black"
-        android:textSize="36sp"
-        android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.496"
-        app:layout_constraintStart_toStartOf="parent" />
+        android:textSize="34sp"
+        android:textStyle="bold" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+</LinearLayout>

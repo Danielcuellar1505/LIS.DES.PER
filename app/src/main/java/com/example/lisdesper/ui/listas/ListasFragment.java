@@ -433,7 +433,7 @@ public class ListasFragment extends Fragment {
                 if (cancellationDialog != null && cancellationDialog.isShowing()) {
                     cancellationDialog.dismiss();
                 }
-            }, 2000);
+            }, 1440);
         }
 
         AlertDialog dialog = builder.setView(dialogView).create();
