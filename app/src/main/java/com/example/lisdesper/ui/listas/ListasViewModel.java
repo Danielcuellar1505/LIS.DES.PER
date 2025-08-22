@@ -52,7 +52,6 @@ public class ListasViewModel extends ViewModel {
                             ItemLista itemLista = new ItemLista(
                                     doc.getId(),
                                     doc.getString("nombre"),
-                                    doc.getString("telefono"), // Nuevo campo
                                     doc.getString("detalle"),
                                     monto,
                                     Boolean.TRUE.equals(doc.getBoolean("cancelado"))

@@ -70,7 +70,6 @@ public class InicioViewModel extends ViewModel {
                             ItemLista itemLista = new ItemLista(
                                     doc.getId(),
                                     doc.getString("nombre"),
-                                    doc.getString("telefono"),
                                     doc.getString("detalle"),
                                     monto,
                                     Boolean.TRUE.equals(doc.getBoolean("cancelado"))

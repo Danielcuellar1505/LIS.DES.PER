@@ -36,7 +36,6 @@ public class CBaseDatos {
         String fechaStr = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
         Map<String, Object> itemData = new HashMap<>();
         itemData.put("nombre", itemLista.getNombre());
-        itemData.put("telefono", itemLista.getTelefono()); // Nuevo campo
         itemData.put("detalle", itemLista.getDetalle());
         itemData.put("monto", itemLista.getMonto());
         itemData.put("cancelado", itemLista.isCancelado());
@@ -68,10 +67,7 @@ public class CBaseDatos {
 
     public void actualizarItem(String listaId, String itemId, ItemLista itemLista, OnCompleteListener<Void> listener) {
         Map<String, Object> updates = new HashMap<>();
-
-
         updates.put("nombre", itemLista.getNombre());
-        updates.put("telefono", itemLista.getTelefono()); // Nuevo campo
         updates.put("detalle", itemLista.getDetalle());
         updates.put("monto", itemLista.getMonto());
         updates.put("cancelado", itemLista.isCancelado());
@@ -119,7 +115,6 @@ public class CBaseDatos {
                         ItemLista itemLista = new ItemLista(
                                 document.getId(),
                                 document.getString("nombre"),
-                                document.getString("telefono"), // Nuevo campo
                                 document.getString("detalle"),
                                 document.getDouble("monto"),
                                 Boolean.TRUE.equals(document.getBoolean("cancelado"))
