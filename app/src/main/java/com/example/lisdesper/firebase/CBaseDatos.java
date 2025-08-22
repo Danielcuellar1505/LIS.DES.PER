@@ -2,18 +2,18 @@ package com.example.lisdesper.firebase;
 
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.example.lisdesper.ui.deudores.ItemDeudores;
+import com.example.lisdesper.ui.acreedores.ItemAcreedores;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
+import java.util.Locale;
 
 public class CBaseDatos {
     private static CBaseDatos instance;
@@ -44,7 +44,6 @@ public class CBaseDatos {
         if (deudorId == null || deudorId.isEmpty()) {
             Map<String, Object> nuevaDeudor = new HashMap<>();
             nuevaDeudor.put("nombre", "Deudores Principal");
-            nuevaDeudor.put("fechaCreacion", FieldValue.serverTimestamp());
 
             deudoresCollection.add(nuevaDeudor)
                     .addOnSuccessListener(documentReference -> {
@@ -58,6 +57,38 @@ public class CBaseDatos {
                     .addOnSuccessListener(documentReference -> {
                         itemDeudores.setId(documentReference.getId());
                         if (listener != null) listener.onComplete(itemDeudores, null);
+                    })
+                    .addOnFailureListener(e -> {
+                        if (listener != null) listener.onComplete(null, e);
+                    });
+        }
+    }
+
+    public void agregarItemAcreedor(String acreedorId, ItemAcreedores itemAcreedores, OnCompleteListener<ItemAcreedores> listener) {
+        String fechaStr = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+        Map<String, Object> itemData = new HashMap<>();
+        itemData.put("nombre", itemAcreedores.getNombre());
+        itemData.put("detalle", itemAcreedores.getDetalle());
+        itemData.put("monto", itemAcreedores.getMonto());
+        itemData.put("cancelado", itemAcreedores.isCancelado());
+        itemData.put("fecha", fechaStr);
+
+        if (acreedorId == null || acreedorId.isEmpty()) {
+            Map<String, Object> nuevoAcreedor = new HashMap<>();
+            nuevoAcreedor.put("nombre", "Acreedores Principal");
+
+            deudoresCollection.add(nuevoAcreedor)
+                    .addOnSuccessListener(documentReference -> {
+                        agregarItemAcreedor(documentReference.getId(), itemAcreedores, listener);
+                    })
+                    .addOnFailureListener(e -> {
+                        if (listener != null) listener.onComplete(null, e);
+                    });
+        } else {
+            deudoresCollection.document(acreedorId).collection("items").add(itemData)
+                    .addOnSuccessListener(documentReference -> {
+                        itemAcreedores.setId(documentReference.getId());
+                        if (listener != null) listener.onComplete(itemAcreedores, null);
                     })
                     .addOnFailureListener(e -> {
                         if (listener != null) listener.onComplete(null, e);
@@ -82,8 +113,25 @@ public class CBaseDatos {
                 });
     }
 
+    public void actualizarItemAcreedor(String acreedorId, String itemId, ItemAcreedores itemAcreedores, OnCompleteListener<Void> listener) {
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("nombre", itemAcreedores.getNombre());
+        updates.put("detalle", itemAcreedores.getDetalle());
+        updates.put("monto", itemAcreedores.getMonto());
+        updates.put("cancelado", itemAcreedores.isCancelado());
+        updates.put("fecha", itemAcreedores.getFecha());
+
+        deudoresCollection.document(acreedorId).collection("items").document(itemId).update(updates)
+                .addOnSuccessListener(aVoid -> {
+                    if (listener != null) listener.onComplete(null, null);
+                })
+                .addOnFailureListener(e -> {
+                    if (listener != null) listener.onComplete(null, e);
+                });
+    }
+
     public void obtenerDeudoresPrincipal(OnCompleteListener<String> listener) {
-        deudoresCollection.limit(1).get()
+        deudoresCollection.whereEqualTo("nombre", "Deudores Principal").limit(1).get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     if (!queryDocumentSnapshots.isEmpty()) {
                         DocumentSnapshot document = queryDocumentSnapshots.getDocuments().get(0);
@@ -91,9 +139,32 @@ public class CBaseDatos {
                     } else {
                         Map<String, Object> nuevoDeudor = new HashMap<>();
                         nuevoDeudor.put("nombre", "Deudores Principal");
-                        nuevoDeudor.put("fechaCreacion", FieldValue.serverTimestamp());
 
                         deudoresCollection.add(nuevoDeudor)
+                                .addOnSuccessListener(documentReference -> {
+                                    if (listener != null) listener.onComplete(documentReference.getId(), null);
+                                })
+                                .addOnFailureListener(e -> {
+                                    if (listener != null) listener.onComplete(null, e);
+                                });
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    if (listener != null) listener.onComplete(null, e);
+                });
+    }
+
+    public void obtenerAcreedoresPrincipal(OnCompleteListener<String> listener) {
+        deudoresCollection.whereEqualTo("nombre", "Acreedores Principal").limit(1).get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    if (!queryDocumentSnapshots.isEmpty()) {
+                        DocumentSnapshot document = queryDocumentSnapshots.getDocuments().get(0);
+                        if (listener != null) listener.onComplete(document.getId(), null);
+                    } else {
+                        Map<String, Object> nuevoAcreedor = new HashMap<>();
+                        nuevoAcreedor.put("nombre", "Acreedores Principal");
+
+                        deudoresCollection.add(nuevoAcreedor)
                                 .addOnSuccessListener(documentReference -> {
                                     if (listener != null) listener.onComplete(documentReference.getId(), null);
                                 })
@@ -126,7 +197,31 @@ public class CBaseDatos {
                         listaDeudores.add(item);
                     }
                     if (listener != null) listener.onComplete(listaDeudores, null);
+                })
+                .addOnFailureListener(e -> {
+                    if (listener != null) listener.onComplete(null, e);
+                });
+    }
 
+    private void obtenerItemsDeAcreedores(String acreedorId, OnCompleteListener<List<ItemAcreedores>> listener) {
+        deudoresCollection.document(acreedorId).collection("items").get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    List<ItemAcreedores> listaAcreedores = new ArrayList<>();
+                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                        ItemAcreedores item = new ItemAcreedores(
+                                document.getId(),
+                                document.getString("nombre"),
+                                document.getString("detalle"),
+                                document.getDouble("monto"),
+                                Boolean.TRUE.equals(document.getBoolean("cancelado"))
+                        );
+                        String fechaStr = document.getString("fecha");
+                        if (fechaStr != null) {
+                            item.setFecha(fechaStr);
+                        }
+                        listaAcreedores.add(item);
+                    }
+                    if (listener != null) listener.onComplete(listaAcreedores, null);
                 })
                 .addOnFailureListener(e -> {
                     if (listener != null) listener.onComplete(null, e);

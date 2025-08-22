@@ -47,7 +47,7 @@
             android:id="@+id/hCancelado"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Cancelado"
+            android:text="Pagó"
             android:textStyle="bold"
             android:paddingStart="8dp"
             android:paddingEnd="4dp"/>
@@ -66,7 +66,7 @@
         android:id="@+id/btnToggleCancelados"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:drawableStart="@drawable/ic_open_eye"
+        android:drawableStart="@drawable/ic_open_eye_black_24dp"
         android:drawablePadding="4dp"
         android:padding="8dp"
         android:text="Mostrar"

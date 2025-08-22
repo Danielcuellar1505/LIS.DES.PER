@@ -112,7 +112,7 @@ public class DeudoresFragment extends Fragment {
     }
 
     private void setButtonIconAndText(boolean mostrarCancelados) {
-        int drawableRes = mostrarCancelados ? R.drawable.ic_close_eye : R.drawable.ic_open_eye;
+        int drawableRes = mostrarCancelados ? R.drawable.ic_close_eye_black_24dp : R.drawable.ic_open_eye_black_24dp;
         Drawable drawable = ContextCompat.getDrawable(requireContext(), drawableRes);
         if (drawable != null) {
             int size = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16, getResources().getDisplayMetrics());
