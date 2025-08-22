@@ -3,24 +3,24 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/mobile_navigation"
-    app:startDestination="@+id/navigation_inicio">
+    app:startDestination="@+id/navigation_dashboard">
 
     <fragment
-        android:id="@+id/navigation_inicio"
-        android:name="com.example.lisdesper.ui.inicio.InicioFragment"
-        android:label="@string/title_inicio"
-        tools:layout="@layout/fragment_inicio" />
+        android:id="@+id/navigation_dashboard"
+        android:name="com.example.lisdesper.ui.Dashboard.DashboardFragment"
+        android:label="@string/title_dashboard"
+        tools:layout="@layout/fragment_dashboard" />
 
 
     <fragment
-        android:id="@+id/navigation_listas"
-        android:name="com.example.lisdesper.ui.listas.ListasFragment"
-        android:label="@string/title_listas"
-        tools:layout="@layout/fragment_listas" />
+        android:id="@+id/navigation_deudores"
+        android:name="com.example.lisdesper.ui.deudores.DeudoresFragment"
+        android:label="@string/title_deudores"
+        tools:layout="@layout/fragment_deudores" />
 
     <fragment
-        android:id="@+id/navigation_deseos"
-        android:name="com.example.lisdesper.ui.deseos.DeseosFragment"
-        android:label="@string/title_deseos"
-        tools:layout="@layout/fragment_deseos" />
+        android:id="@+id/navigation_acreedores"
+        android:name="com.example.lisdesper.ui.acreedores.AcreedoresFragment"
+        android:label="@string/title_acreedores"
+        tools:layout="@layout/fragment_acreedores" />
 </navigation>

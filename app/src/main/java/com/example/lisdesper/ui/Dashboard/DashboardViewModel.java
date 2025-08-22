@@ -1,11 +1,11 @@
-package com.example.lisdesper.ui.inicio;
+package com.example.lisdesper.ui.Dashboard;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.example.lisdesper.firebase.CBaseDatos;
-import com.example.lisdesper.ui.listas.ItemLista;
+import com.example.lisdesper.ui.deudores.ItemDeudores;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
@@ -15,9 +15,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-public class InicioViewModel extends ViewModel {
+public class DashboardViewModel extends ViewModel {
     private final MutableLiveData<PieChartData> chartData;
-    private final MutableLiveData<List<ItemLista>> todayItems;
+    private final MutableLiveData<List<ItemDeudores>> todayItems;
     private final MutableLiveData<Boolean> isLoading;
     private final CBaseDatos db;
     private ListenerRegistration itemsListener;
@@ -37,7 +37,7 @@ public class InicioViewModel extends ViewModel {
             return noCancelados;
         }
     }
-    public InicioViewModel() {
+    public DashboardViewModel() {
         chartData = new MutableLiveData<>();
         todayItems = new MutableLiveData<>(new ArrayList<>());
         isLoading = new MutableLiveData<>(true);
@@ -46,14 +46,14 @@ public class InicioViewModel extends ViewModel {
     }
     private void cargarDatos() {
         isLoading.setValue(true);
-        db.obtenerListaPrincipal((listaId, e) -> {
-            if (e != null || listaId == null) {
+        db.obtenerDeudoresPrincipal((deudorId, e) -> {
+            if (e != null || deudorId == null) {
                 isLoading.postValue(false);
                 chartData.postValue(new PieChartData(0, 0));
                 todayItems.postValue(new ArrayList<>());
                 return;
             }
-            itemsListener = db.listasCollection.document(listaId).collection("items")
+            itemsListener = db.deudoresCollection.document(deudorId).collection("items")
                     .addSnapshotListener((querySnapshot, error) -> {
                         if (error != null || querySnapshot == null) {
                             isLoading.postValue(false);
@@ -61,13 +61,13 @@ public class InicioViewModel extends ViewModel {
                             todayItems.postValue(new ArrayList<>());
                             return;
                         }
-                        List<ItemLista> itemListas = new ArrayList<>();
-                        List<ItemLista> todayItemListas = new ArrayList<>();
+                        List<ItemDeudores> itemDeudores = new ArrayList<>();
+                        List<ItemDeudores> todayItemDeudores = new ArrayList<>();
                         String todayDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
 
                         for (QueryDocumentSnapshot doc : querySnapshot) {
                             double monto = doc.getDouble("monto") != null ? doc.getDouble("monto") : 0.0;
-                            ItemLista itemLista = new ItemLista(
+                            ItemDeudores item = new ItemDeudores(
                                     doc.getId(),
                                     doc.getString("nombre"),
                                     doc.getString("detalle"),
@@ -77,18 +77,18 @@ public class InicioViewModel extends ViewModel {
 
                             String fechaStr = doc.getString("fecha");
                             if (fechaStr != null) {
-                                itemLista.setFecha(fechaStr);
+                                item.setFecha(fechaStr);
                             }
-                            itemListas.add(itemLista);
+                            itemDeudores.add(item);
 
                             if (fechaStr != null && fechaStr.equals(todayDate)) {
-                                todayItemListas.add(itemLista);
+                                todayItemDeudores.add(item);
                             }
                         }
 
                         int cancelados = 0;
                         int noCancelados = 0;
-                        for (ItemLista item : itemListas) {
+                        for (ItemDeudores item : itemDeudores) {
                             if (item.isCancelado()) {
                                 cancelados++;
                             } else {
@@ -97,7 +97,7 @@ public class InicioViewModel extends ViewModel {
                         }
 
                         chartData.postValue(new PieChartData(cancelados, noCancelados));
-                        todayItems.postValue(todayItemListas);
+                        todayItems.postValue(todayItemDeudores);
                         isLoading.postValue(false);
                     });
         });
@@ -105,7 +105,7 @@ public class InicioViewModel extends ViewModel {
     public LiveData<PieChartData> getChartData() {
         return chartData;
     }
-    public LiveData<List<ItemLista>> getTodayItems() {
+    public LiveData<List<ItemDeudores>> getTodayItems() {
         return todayItems;
     }
     public LiveData<Boolean> getIsLoading() {

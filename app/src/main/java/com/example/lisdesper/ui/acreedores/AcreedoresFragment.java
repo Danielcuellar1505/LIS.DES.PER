@@ -1,4 +1,4 @@
-package com.example.lisdesper.ui.deseos;
+package com.example.lisdesper.ui.acreedores;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -10,22 +10,22 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.example.lisdesper.databinding.FragmentDeseosBinding;
+import com.example.lisdesper.databinding.FragmentAcreedoresBinding;
 
-public class DeseosFragment extends Fragment {
+public class AcreedoresFragment extends Fragment {
 
-    private FragmentDeseosBinding binding;
+    private FragmentAcreedoresBinding binding;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        DeseosViewModel deseosViewModel =
-                new ViewModelProvider(this).get(DeseosViewModel.class);
+        AcreedoresViewModel acreedoresViewModel =
+                new ViewModelProvider(this).get(AcreedoresViewModel.class);
 
-        binding = FragmentDeseosBinding.inflate(inflater, container, false);
+        binding = FragmentAcreedoresBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
-        final TextView textView = binding.textDeseos;
-        deseosViewModel.getText().observe(getViewLifecycleOwner(), textView::setText);
+        final TextView textView = binding.textAcreedores;
+        acreedoresViewModel.getText().observe(getViewLifecycleOwner(), textView::setText);
         return root;
     }
 

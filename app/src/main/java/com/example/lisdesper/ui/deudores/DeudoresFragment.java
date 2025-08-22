@@ -1,4 +1,4 @@
-package com.example.lisdesper.ui.listas;
+package com.example.lisdesper.ui.deudores;
 
 import android.app.AlertDialog;
 import android.graphics.drawable.Drawable;
@@ -22,7 +22,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.lisdesper.R;
-import com.example.lisdesper.databinding.FragmentListasBinding;
+import com.example.lisdesper.databinding.FragmentDeudoresBinding;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -31,10 +31,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-public class ListasFragment extends Fragment {
-    private FragmentListasBinding binding;
-    private ListasViewModel listasViewModel;
-    private ItemsAdapterLista adapter;
+public class DeudoresFragment extends Fragment {
+    private FragmentDeudoresBinding binding;
+    private DeudoresViewModel deudoresViewModel;
+    private ItemsAdapterDeudores adapter;
     private boolean mostrarCancelados = false;
     private AlertDialog loadingDialog;
     private AlertDialog cancellationDialog;
@@ -42,19 +42,19 @@ public class ListasFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        listasViewModel = new ViewModelProvider(this).get(ListasViewModel.class);
-        binding = FragmentListasBinding.inflate(inflater, container, false);
+        deudoresViewModel = new ViewModelProvider(this).get(DeudoresViewModel.class);
+        binding = FragmentDeudoresBinding.inflate(inflater, container, false);
 
-        adapter = new ItemsAdapterLista(new ArrayList<>(),
+        adapter = new ItemsAdapterDeudores(new ArrayList<>(),
                 (originalIndex, isChecked, item) -> {
-                    List<Lista> listas = listasViewModel.getListas().getValue();
-                    if (listas != null && !listas.isEmpty()) {
-                        Lista primera = listas.get(0);
+                    List<Deudores> deudores = deudoresViewModel.getDeudores().getValue();
+                    if (deudores != null && !deudores.isEmpty()) {
+                        Deudores primera = deudores.get(0);
                         if (originalIndex >= 0 && originalIndex < primera.getItems().size()) {
-                            ItemLista it = primera.getItems().get(originalIndex);
+                            ItemDeudores it = primera.getItems().get(originalIndex);
                             it.setCancelado(isChecked);
-                            binding.recyclerViewListas.post(() ->
-                                    listasViewModel.actualizarItem(0, originalIndex, it)
+                            binding.recyclerViewDeudores.post(() ->
+                                    deudoresViewModel.actualizarItem(0, originalIndex, it)
                             );
                             if (isChecked) {
                                 showReusableDialog(false, item.getNombre(), item.getMonto());
@@ -63,16 +63,16 @@ public class ListasFragment extends Fragment {
                     }
                 },
                 (originalIndex, item) -> {
-                    Boolean isLoading = listasViewModel.getIsLoading().getValue();
+                    Boolean isLoading = deudoresViewModel.getIsLoading().getValue();
                     if (isLoading == null || !isLoading) {
                         mostrarDialogoEditarItem(item, originalIndex);
                     }
                 });
 
-        binding.recyclerViewListas.setLayoutManager(new LinearLayoutManager(getContext()));
-        binding.recyclerViewListas.setAdapter(adapter);
+        binding.recyclerViewDeudores.setLayoutManager(new LinearLayoutManager(getContext()));
+        binding.recyclerViewDeudores.setAdapter(adapter);
 
-        listasViewModel.getIsLoading().observe(getViewLifecycleOwner(), isLoading -> {
+        deudoresViewModel.getIsLoading().observe(getViewLifecycleOwner(), isLoading -> {
             if (isLoading != null) {
                 if (isLoading) {
                     showReusableDialog(true, null, 0.0);
@@ -81,28 +81,28 @@ public class ListasFragment extends Fragment {
                         loadingDialog.dismiss();
                     }
                 }
-                binding.fabAgregarLista.setEnabled(!isLoading);
+                binding.fabAgregarDeudores.setEnabled(!isLoading);
                 binding.btnToggleCancelados.setEnabled(!isLoading);
             }
         });
 
-        listasViewModel.getListas().observe(getViewLifecycleOwner(), listas -> {
-            actualizarLista();
+        deudoresViewModel.getDeudores().observe(getViewLifecycleOwner(), deudores -> {
+            actualizarDeudores();
         });
 
-        binding.fabAgregarLista.setOnClickListener(v -> {
-            Boolean isLoading = listasViewModel.getIsLoading().getValue();
+        binding.fabAgregarDeudores.setOnClickListener(v -> {
+            Boolean isLoading = deudoresViewModel.getIsLoading().getValue();
             if (isLoading == null || !isLoading) {
                 mostrarDialogoAgregarItem();
             }
         });
 
         binding.btnToggleCancelados.setOnClickListener(v -> {
-            Boolean isLoading = listasViewModel.getIsLoading().getValue();
+            Boolean isLoading = deudoresViewModel.getIsLoading().getValue();
             if (isLoading == null || !isLoading) {
                 mostrarCancelados = !mostrarCancelados;
                 setButtonIconAndText(mostrarCancelados);
-                actualizarLista();
+                actualizarDeudores();
             }
         });
 
@@ -122,22 +122,22 @@ public class ListasFragment extends Fragment {
         binding.btnToggleCancelados.setText(mostrarCancelados ? "Ocultar" : "Mostrar");
     }
 
-    private void actualizarLista() {
-        List<Lista> listas = listasViewModel.getListas().getValue();
-        List<ListaEntry> flattened = new ArrayList<>();
-        if (listas != null && !listas.isEmpty()) {
-            Lista primera = listas.get(0);
-            List<ItemLista> itemListas = primera.getItems();
+    private void actualizarDeudores() {
+        List<Deudores> deudores = deudoresViewModel.getDeudores().getValue();
+        List<DeudoresEntry> flattened = new ArrayList<>();
+        if (deudores != null && !deudores.isEmpty()) {
+            Deudores primera = deudores.get(0);
+            List<ItemDeudores> itemDeudores = primera.getItems();
             String lastFecha = null;
-            for (int i = 0; i < itemListas.size(); i++) {
-                ItemLista it = itemListas.get(i);
+            for (int i = 0; i < itemDeudores.size(); i++) {
+                ItemDeudores it = itemDeudores.get(i);
                 if (mostrarCancelados || !it.isCancelado()) {
                     String fecha = it.getFecha();
                     if (lastFecha == null || !lastFecha.equals(fecha)) {
-                        flattened.add(ListaEntry.header(formatearFechaParaMostrar(fecha)));
+                        flattened.add(DeudoresEntry.header(formatearFechaParaMostrar(fecha)));
                         lastFecha = fecha;
                     }
-                    flattened.add(ListaEntry.item(it, i));
+                    flattened.add(DeudoresEntry.item(it, i));
                 }
             }
         }
@@ -146,7 +146,7 @@ public class ListasFragment extends Fragment {
 
     private void mostrarDialogoAgregarItem() {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
-        View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.lista_dialog_agregar_item, null);
+        View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.deudores_dialog_agregar_item, null);
 
         EditText etNombre = dialogView.findViewById(R.id.etNombre);
         EditText etDetalle = dialogView.findViewById(R.id.etDetalle);
@@ -172,16 +172,16 @@ public class ListasFragment extends Fragment {
                         return;
                     }
 
-                    ItemLista nuevo = new ItemLista(nombre, detalle, monto, false);
-                    listasViewModel.agregarItem(0, nuevo);
+                    ItemDeudores nuevo = new ItemDeudores(nombre, detalle, monto, false);
+                    deudoresViewModel.agregarItem(0, nuevo);
                 })
                 .setNegativeButton("Cancelar", null)
                 .show();
     }
 
-    private void mostrarDialogoEditarItem(ItemLista item, int originalIndex) {
+    private void mostrarDialogoEditarItem(ItemDeudores item, int originalIndex) {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
-        View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.lista_dialog_agregar_item, null);
+        View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.deudores_dialog_agregar_item, null);
 
         EditText etNombre = dialogView.findViewById(R.id.etNombre);
         EditText etDetalle = dialogView.findViewById(R.id.etDetalle);
@@ -211,9 +211,9 @@ public class ListasFragment extends Fragment {
                         return;
                     }
 
-                    ItemLista actualizado = new ItemLista(item.getId(), nombre, detalle, monto, item.isCancelado());
+                    ItemDeudores actualizado = new ItemDeudores(item.getId(), nombre, detalle, monto, item.isCancelado());
                     actualizado.setFecha(item.getFecha());
-                    listasViewModel.actualizarItem(0, originalIndex, actualizado);
+                    deudoresViewModel.actualizarItem(0, originalIndex, actualizado);
                 })
                 .setNegativeButton("Cancelar", null)
                 .show();

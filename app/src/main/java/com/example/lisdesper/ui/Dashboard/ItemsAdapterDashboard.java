@@ -1,4 +1,4 @@
-package com.example.lisdesper.ui.inicio;
+package com.example.lisdesper.ui.Dashboard;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,33 +10,33 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.lisdesper.R;
-import com.example.lisdesper.ui.listas.ItemLista;
+import com.example.lisdesper.ui.deudores.ItemDeudores;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ItemsAdapterInicio extends RecyclerView.Adapter<ItemsAdapterInicio.ItemViewHolder> {
-    private List<ItemLista> items;
-    public ItemsAdapterInicio(List<ItemLista> items) {
+public class ItemsAdapterDashboard extends RecyclerView.Adapter<ItemsAdapterDashboard.ItemViewHolder> {
+    private List<ItemDeudores> items;
+    public ItemsAdapterDashboard(List<ItemDeudores> items) {
         this.items = items != null ? items : new ArrayList<>();
     }
-    public void setItems(List<ItemLista> nuevos) {
+    public void setItems(List<ItemDeudores> nuevos) {
         this.items = nuevos != null ? nuevos : new ArrayList<>();
         notifyDataSetChanged();
     }
     @NonNull
     @Override
     public ItemViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.lista_item_row, parent, false);
+        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.deudores_item_row, parent, false);
         return new ItemViewHolder(v);
     }
     @Override
     public void onBindViewHolder(@NonNull ItemViewHolder holder, int position) {
-        ItemLista itemLista = items.get(position);
-        holder.tvNombre.setText(itemLista.getNombre());
-        holder.tvDetalle.setText(itemLista.getDetalle());
-        holder.tvMonto.setText(String.format("%.2f", itemLista.getMonto()));
-        holder.cbCancelado.setChecked(itemLista.isCancelado());
+        ItemDeudores itemDeudores = items.get(position);
+        holder.tvNombre.setText(itemDeudores.getNombre());
+        holder.tvDetalle.setText(itemDeudores.getDetalle());
+        holder.tvMonto.setText(String.format("%.2f", itemDeudores.getMonto()));
+        holder.cbCancelado.setChecked(itemDeudores.isCancelado());
         holder.cbCancelado.setEnabled(false);
     }
     @Override

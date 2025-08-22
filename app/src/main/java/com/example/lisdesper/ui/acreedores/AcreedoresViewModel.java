@@ -1,16 +1,16 @@
-package com.example.lisdesper.ui.deseos;
+package com.example.lisdesper.ui.acreedores;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-public class DeseosViewModel extends ViewModel {
+public class AcreedoresViewModel extends ViewModel {
 
     private final MutableLiveData<String> mText;
 
-    public DeseosViewModel() {
+    public AcreedoresViewModel() {
         mText = new MutableLiveData<>();
-        mText.setValue("DESEOS");
+        mText.setValue("En desarollo...");
     }
 
     public LiveData<String> getText() {

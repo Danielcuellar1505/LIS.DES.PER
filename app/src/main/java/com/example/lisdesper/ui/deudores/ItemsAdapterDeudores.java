@@ -1,4 +1,4 @@
-package com.example.lisdesper.ui.listas;
+package com.example.lisdesper.ui.deudores;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,23 +13,23 @@ import com.example.lisdesper.R;
 
 import java.util.List;
 
-public class ItemsAdapterLista extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+public class ItemsAdapterDeudores extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     public interface OnItemCheckedChangeListener {
-        void onItemCheckedChanged(int originalItemIndex, boolean isChecked, ItemLista item);
+        void onItemCheckedChanged(int originalItemIndex, boolean isChecked, ItemDeudores item);
     }
     public interface OnItemClickListener {
-        void onItemClick(int originalItemIndex, ItemLista item);
+        void onItemClick(int originalItemIndex, ItemDeudores item);
     }
-    private List<ListaEntry> entries;
+    private List<DeudoresEntry> entries;
     private OnItemCheckedChangeListener checkedListener;
     private OnItemClickListener clickListener;
 
-    public ItemsAdapterLista(List<ListaEntry> entries, OnItemCheckedChangeListener checkedListener, OnItemClickListener clickListener) {
+    public ItemsAdapterDeudores(List<DeudoresEntry> entries, OnItemCheckedChangeListener checkedListener, OnItemClickListener clickListener) {
         this.entries = entries;
         this.checkedListener = checkedListener;
         this.clickListener = clickListener;
     }
-    public void setItems(List<ListaEntry> nuevos) {
+    public void setItems(List<DeudoresEntry> nuevos) {
         this.entries = nuevos;
         notifyDataSetChanged();
     }
@@ -40,38 +40,38 @@ public class ItemsAdapterLista extends RecyclerView.Adapter<RecyclerView.ViewHol
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        if (viewType == ListaEntry.TYPE_HEADER) {
-            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.lista_header_row, parent, false);
+        if (viewType == DeudoresEntry.TYPE_HEADER) {
+            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.deudores_header_row, parent, false);
             return new HeaderViewHolder(v);
         } else {
-            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.lista_item_row, parent, false);
+            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.deudores_item_row, parent, false);
             return new ItemViewHolder(v);
         }
     }
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-        ListaEntry entry = entries.get(position);
-        if (entry.getType() == ListaEntry.TYPE_HEADER) {
+        DeudoresEntry entry = entries.get(position);
+        if (entry.getType() == DeudoresEntry.TYPE_HEADER) {
             HeaderViewHolder hv = (HeaderViewHolder) holder;
             hv.tvHeaderFecha.setText(entry.getFecha());
         } else {
             ItemViewHolder iv = (ItemViewHolder) holder;
-            ItemLista itemLista = entry.getItem();
+            ItemDeudores itemDeudores = entry.getItem();
 
-            iv.tvNombre.setText(itemLista.getNombre());
-            iv.tvDetalle.setText(itemLista.getDetalle());
-            iv.tvMonto.setText(String.format("%.2f", itemLista.getMonto()));
+            iv.tvNombre.setText(itemDeudores.getNombre());
+            iv.tvDetalle.setText(itemDeudores.getDetalle());
+            iv.tvMonto.setText(String.format("%.2f", itemDeudores.getMonto()));
             iv.cbCancelado.setOnCheckedChangeListener(null);
-            iv.cbCancelado.setChecked(itemLista.isCancelado());
+            iv.cbCancelado.setChecked(itemDeudores.isCancelado());
             iv.cbCancelado.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                itemLista.setCancelado(isChecked);
+                itemDeudores.setCancelado(isChecked);
                 if (checkedListener != null) {
-                    checkedListener.onItemCheckedChanged(entry.getOriginalIndex(), isChecked, itemLista);
+                    checkedListener.onItemCheckedChanged(entry.getOriginalIndex(), isChecked, itemDeudores);
                 }
             });
             iv.itemView.setOnClickListener(v -> {
                 if (clickListener != null) {
-                    clickListener.onItemClick(entry.getOriginalIndex(), itemLista);
+                    clickListener.onItemClick(entry.getOriginalIndex(), itemDeudores);
                 }
             });
         }

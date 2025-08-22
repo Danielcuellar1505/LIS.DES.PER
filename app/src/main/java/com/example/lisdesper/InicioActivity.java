@@ -33,7 +33,7 @@ public class InicioActivity extends AppCompatActivity {
 
         BottomNavigationView navView = findViewById(R.id.nav_view);
         AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.navigation_inicio, R.id.navigation_listas, R.id.navigation_deseos)
+                R.id.navigation_dashboard, R.id.navigation_deudores, R.id.navigation_acreedores)
                 .build();
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_activity_inicio);
         NavigationUI.setupWithNavController(binding.navView, navController);

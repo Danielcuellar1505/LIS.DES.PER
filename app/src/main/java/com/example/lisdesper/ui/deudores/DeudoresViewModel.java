@@ -1,4 +1,4 @@
-package com.example.lisdesper.ui.listas;
+package com.example.lisdesper.ui.deudores;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -12,44 +12,44 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class ListasViewModel extends ViewModel {
-    private final MutableLiveData<List<Lista>> listas;
+public class DeudoresViewModel extends ViewModel {
+    private final MutableLiveData<List<Deudores>> deudores;
     private final MutableLiveData<Boolean> isLoading;
     private final CBaseDatos db;
-    private String currentListaId;
-    private String currentListaNombre = "Lista Principal";
+    private String currentDeudoresId;
+    private String currentDeudoresNombre = "Deudores Principal";
     private ListenerRegistration itemsListener;
 
-    public ListasViewModel() {
-        listas = new MutableLiveData<>(new ArrayList<>());
+    public DeudoresViewModel() {
+        deudores = new MutableLiveData<>(new ArrayList<>());
         isLoading = new MutableLiveData<>(true);
         db = CBaseDatos.getInstance();
-        cargarListaPrincipal();
+        cargarDeudoresPrincipal();
     }
 
-    private void cargarListaPrincipal() {
+    private void cargarDeudoresPrincipal() {
         isLoading.setValue(true);
-        db.obtenerListaPrincipal((listaId, e) -> {
-            if (e != null || listaId == null) {
+        db.obtenerDeudoresPrincipal((deudorId, e) -> {
+            if (e != null || deudorId == null) {
                 isLoading.postValue(false);
                 return;
             }
-            this.currentListaId = listaId;
+            this.currentDeudoresId = deudorId;
 
-            List<Lista> current = new ArrayList<>();
-            current.add(new Lista(currentListaNombre));
-            listas.postValue(current);
+            List<Deudores> current = new ArrayList<>();
+            current.add(new Deudores(currentDeudoresNombre));
+            deudores.postValue(current);
 
-            itemsListener = db.listasCollection.document(listaId).collection("items")
+            itemsListener = db.deudoresCollection.document(deudorId).collection("items")
                     .addSnapshotListener((querySnapshot, error) -> {
                         if (error != null || querySnapshot == null) {
                             isLoading.postValue(false);
                             return;
                         }
-                        List<ItemLista> newItemListas = new ArrayList<>();
+                        List<ItemDeudores> newItemDeudores = new ArrayList<>();
                         for (QueryDocumentSnapshot doc : querySnapshot) {
                             double monto = doc.getDouble("monto") != null ? doc.getDouble("monto") : 0.0;
-                            ItemLista itemLista = new ItemLista(
+                            ItemDeudores itemDeudores = new ItemDeudores(
                                     doc.getId(),
                                     doc.getString("nombre"),
                                     doc.getString("detalle"),
@@ -58,41 +58,41 @@ public class ListasViewModel extends ViewModel {
                             );
                             String fechaStr = doc.getString("fecha");
                             if (fechaStr != null) {
-                                itemLista.setFecha(fechaStr);
+                                itemDeudores.setFecha(fechaStr);
                             }
-                            newItemListas.add(itemLista);
+                            newItemDeudores.add(itemDeudores);
                         }
-                        Collections.sort(newItemListas, (a, b) -> {
+                        Collections.sort(newItemDeudores, (a, b) -> {
                             if (a.getFecha() == null) return 1;
                             if (b.getFecha() == null) return -1;
                             return b.getFecha().compareTo(a.getFecha());
                         });
-                        List<Lista> updated = listas.getValue();
+                        List<Deudores> updated = deudores.getValue();
                         if (updated != null && !updated.isEmpty()) {
-                            updated.get(0).setItems(newItemListas);
-                            listas.postValue(updated);
+                            updated.get(0).setItems(newItemDeudores);
+                            deudores.postValue(updated);
                         }
                         isLoading.postValue(false);
                     });
         });
     }
 
-    public LiveData<List<Lista>> getListas() {
-        return listas;
+    public LiveData<List<Deudores>> getDeudores() {
+        return deudores;
     }
 
-    public void agregarItem(int posicionLista, ItemLista itemLista) {
-        db.agregarItem(currentListaId, itemLista, null);
+    public void agregarItem(int posicionDeudores, ItemDeudores itemDeudores) {
+        db.agregarItem(currentDeudoresId, itemDeudores, null);
     }
 
     public LiveData<Boolean> getIsLoading() {
         return isLoading;
     }
 
-    public void actualizarItem(int posicionLista, int posicionItem, ItemLista itemListaActualizado) {
-        if (itemListaActualizado.getId() == null || itemListaActualizado.getId().isEmpty()) {
+    public void actualizarItem(int posicionDeudores, int posicionItem, ItemDeudores itemDeudoresActualizado) {
+        if (itemDeudoresActualizado.getId() == null || itemDeudoresActualizado.getId().isEmpty()) {
             return;
         }
-        db.actualizarItem(currentListaId, itemListaActualizado.getId(), itemListaActualizado, null);
+        db.actualizarItem(currentDeudoresId, itemDeudoresActualizado.getId(), itemDeudoresActualizado, null);
     }
 }

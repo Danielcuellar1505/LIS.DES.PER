@@ -2,18 +2,18 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/navigation_inicio"
-        android:icon="@drawable/ic_inicio_black_24dp"
-        android:title="@string/title_inicio" />
+        android:id="@+id/navigation_dashboard"
+        android:icon="@drawable/ic_dashboard"
+        android:title="@string/title_dashboard" />
 
     <item
-        android:id="@+id/navigation_listas"
-        android:icon="@drawable/ic_listas_black_24dp"
-        android:title="@string/title_listas" />
+        android:id="@+id/navigation_deudores"
+        android:icon="@drawable/ic_deudores_black_24dp"
+        android:title="@string/title_deudores" />
 
     <item
-        android:id="@+id/navigation_deseos"
-        android:icon="@drawable/ic_deseos_black_24dp"
-        android:title="@string/title_deseos" />
+        android:id="@+id/navigation_acreedores"
+        android:icon="@drawable/ic_acreedores_black_24dp"
+        android:title="@string/title_acreedores" />
 
 </menu>

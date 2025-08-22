@@ -1,10 +1,8 @@
-package com.example.lisdesper.ui.inicio;
+package com.example.lisdesper.ui.Dashboard;
 
 import android.app.AlertDialog;
 import android.content.res.TypedArray;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,8 +14,8 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.lisdesper.R;
-import com.example.lisdesper.databinding.FragmentInicioBinding;
-import com.example.lisdesper.ui.listas.ItemLista;
+import com.example.lisdesper.databinding.FragmentDashboardBinding;
+import com.example.lisdesper.ui.deudores.ItemDeudores;
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
@@ -30,17 +28,17 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-public class InicioFragment extends Fragment {
+public class DashboardFragment extends Fragment {
 
-    private FragmentInicioBinding binding;
-    private InicioViewModel homeViewModel;
+    private FragmentDashboardBinding binding;
+    private DashboardViewModel homeViewModel;
     private AlertDialog loadingDialog;
-    private ItemsAdapterInicio adapter;
+    private ItemsAdapterDashboard adapter;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        homeViewModel = new ViewModelProvider(this).get(InicioViewModel.class);
-        binding = FragmentInicioBinding.inflate(inflater, container, false);
+        homeViewModel = new ViewModelProvider(this).get(DashboardViewModel.class);
+        binding = FragmentDashboardBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
         setupPieChart();
@@ -120,11 +118,11 @@ public class InicioFragment extends Fragment {
         binding.pieChart.invalidate();
     }
     private void setupRecyclerView() {
-        adapter = new ItemsAdapterInicio(new ArrayList<>());
+        adapter = new ItemsAdapterDashboard(new ArrayList<>());
         binding.recyclerViewTodayItems.setLayoutManager(new LinearLayoutManager(getContext()));
         binding.recyclerViewTodayItems.setAdapter(adapter);
     }
-    private void updateRecyclerView(List<ItemLista> items) {
+    private void updateRecyclerView(List<ItemDeudores> items) {
         adapter.setItems(items);
     }
     private void showLoadingDialog() {

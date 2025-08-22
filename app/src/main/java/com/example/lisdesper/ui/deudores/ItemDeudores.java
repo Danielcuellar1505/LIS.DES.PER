@@ -1,10 +1,10 @@
-package com.example.lisdesper.ui.listas;
+package com.example.lisdesper.ui.deudores;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-public class ItemLista {
+public class ItemDeudores {
     private String id;
     private String nombre;
     private String detalle;
@@ -12,7 +12,7 @@ public class ItemLista {
     private boolean cancelado;
     private String fecha;
 
-    public ItemLista(String id, String nombre, String detalle, double monto, boolean cancelado) {
+    public ItemDeudores(String id, String nombre, String detalle, double monto, boolean cancelado) {
         this.id = id;
         this.nombre = nombre;
         this.detalle = detalle;
@@ -21,7 +21,7 @@ public class ItemLista {
         this.fecha = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
     }
 
-    public ItemLista(String nombre, String detalle, double monto, boolean cancelado) {
+    public ItemDeudores(String nombre, String detalle, double monto, boolean cancelado) {
         this("", nombre, detalle, monto, cancelado);
     }
 

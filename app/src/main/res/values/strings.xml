@@ -1,7 +1,7 @@
 <resources>
-    <string name="app_name">Lista de Deseos</string>
+    <string name="app_name">Listas</string>
     <string name="title_activity_home">HomeActivity</string>
-    <string name="title_inicio">Inicio</string>
-    <string name="title_listas">Listas</string>
-    <string name="title_deseos">Deseos</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_deudores">Deudores</string>
+    <string name="title_acreedores">Acreedores</string>
 </resources>
