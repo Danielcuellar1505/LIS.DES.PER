@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 import android.widget.ViewSwitcher;
 
 import androidx.annotation.NonNull;
@@ -16,6 +17,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import com.example.lisdesper.R;
 import com.example.lisdesper.databinding.FragmentDashboardBinding;
 import com.example.lisdesper.ui.deudores.ItemDeudores;
+import com.example.lisdesper.ui.acreedores.ItemAcreedores;
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
@@ -33,7 +35,10 @@ public class DashboardFragment extends Fragment {
     private FragmentDashboardBinding binding;
     private DashboardViewModel homeViewModel;
     private AlertDialog loadingDialog;
-    private ItemsAdapterDashboard adapter;
+    private ItemsAdapterDashboard adapterDeudores;
+    private ItemsAdapterDashboard adapterAcreedores;
+    private boolean isDeudoresExpanded = false;
+    private boolean isAcreedoresExpanded = false;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -41,10 +46,17 @@ public class DashboardFragment extends Fragment {
         binding = FragmentDashboardBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
-        setupPieChart();
-        setupRecyclerView();
+        setupPieChart(binding.pieChartDeudores);
+        setupPieChart(binding.pieChartAcreedores);
+        setupRecyclerViewDeudores();
+        setupRecyclerViewAcreedores();
         String todayDate = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(new Date());
-        binding.tvTodayItemsTitle.setText("Deudas de hoy (" + todayDate + ")");
+        binding.tvTodayDeudoresItemsTitle.setText("Deudas de hoy (" + todayDate + ")");
+        binding.tvTodayAcreedoresItemsTitle.setText("Acreedores de hoy (" + todayDate + ")");
+
+        // Configurar botones de acordeón
+        binding.btnToggleDeudores.setOnClickListener(v -> toggleDeudores());
+        binding.btnToggleAcreedores.setOnClickListener(v -> toggleAcreedores());
 
         homeViewModel.getIsLoading().observe(getViewLifecycleOwner(), isLoading -> {
             if (isLoading != null) {
@@ -58,18 +70,49 @@ public class DashboardFragment extends Fragment {
             }
         });
 
-        homeViewModel.getChartData().observe(getViewLifecycleOwner(), chartData -> {
-            updatePieChart(chartData.getCancelados(), chartData.getNoCancelados());
+        homeViewModel.getDeudoresChartData().observe(getViewLifecycleOwner(), chartData -> {
+            updatePieChart(binding.pieChartDeudores, chartData.getCancelados(), chartData.getNoCancelados());
         });
 
-        homeViewModel.getTodayItems().observe(getViewLifecycleOwner(), items -> {
-            updateRecyclerView(items);
+        homeViewModel.getTodayDeudoresItems().observe(getViewLifecycleOwner(), items -> {
+            updateRecyclerViewDeudores(items);
+        });
+
+        homeViewModel.getAcreedoresChartData().observe(getViewLifecycleOwner(), chartData -> {
+            updatePieChart(binding.pieChartAcreedores, chartData.getCancelados(), chartData.getNoCancelados());
+        });
+
+        homeViewModel.getTodayAcreedoresItems().observe(getViewLifecycleOwner(), items -> {
+            updateRecyclerViewAcreedores(items);
+        });
+
+        homeViewModel.getErrorMessage().observe(getViewLifecycleOwner(), error -> {
+            if (error != null) {
+                Toast.makeText(getContext(), error, Toast.LENGTH_LONG).show();
+            }
         });
 
         return root;
     }
-    private void setupPieChart() {
-        PieChart pieChart = binding.pieChart;
+
+    private void toggleDeudores() {
+        isDeudoresExpanded = !isDeudoresExpanded;
+        binding.deudoresContent.setVisibility(isDeudoresExpanded ? View.VISIBLE : View.GONE);
+        binding.btnToggleDeudores.setText(isDeudoresExpanded
+                ? "Grafico de deudores \uD83D\uDD3C"
+                : "Grafico de deudores \uD83D\uDD3D");
+    }
+
+    private void toggleAcreedores() {
+        isAcreedoresExpanded = !isAcreedoresExpanded;
+        binding.acreedoresContent.setVisibility(isAcreedoresExpanded ? View.VISIBLE : View.GONE);
+        binding.btnToggleAcreedores.setText(isAcreedoresExpanded
+                ? "Grafico de Acreedores \uD83D\uDD3C"
+                : "Grafico de Acreedores \uD83D\uDD3D");
+    }
+
+
+    private void setupPieChart(PieChart pieChart) {
         pieChart.setUsePercentValues(false);
         pieChart.getDescription().setEnabled(false);
         pieChart.setDrawHoleEnabled(true);
@@ -87,7 +130,8 @@ public class DashboardFragment extends Fragment {
         pieChart.getLegend().setTextColor(colorOnPrimary);
         pieChart.setDrawEntryLabels(false);
     }
-    private void updatePieChart(int cancelados, int noCancelados) {
+
+    private void updatePieChart(PieChart pieChart, int cancelados, int noCancelados) {
         List<PieEntry> entries = new ArrayList<>();
         entries.add(new PieEntry(cancelados, "Cancelados"));
         entries.add(new PieEntry(noCancelados, "No Cancelados"));
@@ -111,20 +155,31 @@ public class DashboardFragment extends Fragment {
             }
         });
 
-
-
         PieData data = new PieData(dataSet);
-        binding.pieChart.setData(data);
-        binding.pieChart.invalidate();
+        pieChart.setData(data);
+        pieChart.invalidate();
     }
-    private void setupRecyclerView() {
-        adapter = new ItemsAdapterDashboard(new ArrayList<>());
-        binding.recyclerViewTodayItems.setLayoutManager(new LinearLayoutManager(getContext()));
-        binding.recyclerViewTodayItems.setAdapter(adapter);
+
+    private void setupRecyclerViewDeudores() {
+        adapterDeudores = new ItemsAdapterDashboard(new ArrayList<>());
+        binding.recyclerViewTodayDeudoresItems.setLayoutManager(new LinearLayoutManager(getContext()));
+        binding.recyclerViewTodayDeudoresItems.setAdapter(adapterDeudores);
     }
-    private void updateRecyclerView(List<ItemDeudores> items) {
-        adapter.setItems(items);
+
+    private void setupRecyclerViewAcreedores() {
+        adapterAcreedores = new ItemsAdapterDashboard(new ArrayList<>());
+        binding.recyclerViewTodayAcreedoresItems.setLayoutManager(new LinearLayoutManager(getContext()));
+        binding.recyclerViewTodayAcreedoresItems.setAdapter(adapterAcreedores);
     }
+
+    private void updateRecyclerViewDeudores(List<ItemDeudores> items) {
+        adapterDeudores.setItems(items);
+    }
+
+    private void updateRecyclerViewAcreedores(List<ItemAcreedores> items) {
+        adapterAcreedores.setItems(items);
+    }
+
     private void showLoadingDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
         View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_reutilizable, null);
@@ -134,6 +189,7 @@ public class DashboardFragment extends Fragment {
         loadingDialog = builder.create();
         loadingDialog.show();
     }
+
     @Override
     public void onDestroyView() {
         super.onDestroyView();
@@ -143,5 +199,3 @@ public class DashboardFragment extends Fragment {
         binding = null;
     }
 }
-
-//agregue el contcto pero luego regurese al ultimo commit que fue "AGREGADOS NUMEROS AL GRAFICO SIN TEXTO Y CAMBIO DE TEMA L TEXTO DE LOS INDICADORES"

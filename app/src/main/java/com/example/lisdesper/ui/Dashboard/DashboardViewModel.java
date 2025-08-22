@@ -6,8 +6,11 @@ import androidx.lifecycle.ViewModel;
 
 import com.example.lisdesper.firebase.CBaseDatos;
 import com.example.lisdesper.ui.deudores.ItemDeudores;
+import com.example.lisdesper.ui.acreedores.ItemAcreedores;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -16,11 +19,16 @@ import java.util.List;
 import java.util.Locale;
 
 public class DashboardViewModel extends ViewModel {
-    private final MutableLiveData<PieChartData> chartData;
-    private final MutableLiveData<List<ItemDeudores>> todayItems;
+    private final MutableLiveData<PieChartData> deudoresChartData;
+    private final MutableLiveData<List<ItemDeudores>> todayDeudoresItems;
+    private final MutableLiveData<PieChartData> acreedoresChartData;
+    private final MutableLiveData<List<ItemAcreedores>> todayAcreedoresItems;
     private final MutableLiveData<Boolean> isLoading;
+    private final MutableLiveData<String> errorMessage;
     private final CBaseDatos db;
-    private ListenerRegistration itemsListener;
+    private ListenerRegistration deudoresListener;
+    private ListenerRegistration acreedoresListener;
+    private int loadCounter = 0; // Contador para rastrear las cargas completadas
 
     public static class PieChartData {
         private final int cancelados;
@@ -37,28 +45,38 @@ public class DashboardViewModel extends ViewModel {
             return noCancelados;
         }
     }
+
     public DashboardViewModel() {
-        chartData = new MutableLiveData<>();
-        todayItems = new MutableLiveData<>(new ArrayList<>());
+        deudoresChartData = new MutableLiveData<>();
+        todayDeudoresItems = new MutableLiveData<>(new ArrayList<>());
+        acreedoresChartData = new MutableLiveData<>();
+        todayAcreedoresItems = new MutableLiveData<>(new ArrayList<>());
         isLoading = new MutableLiveData<>(true);
+        errorMessage = new MutableLiveData<>();
         db = CBaseDatos.getInstance();
         cargarDatos();
     }
+
     private void cargarDatos() {
         isLoading.setValue(true);
+        loadCounter = 0; // Reiniciar el contador
+
+        // Load Debtors
         db.obtenerDeudoresPrincipal((deudorId, e) -> {
             if (e != null || deudorId == null) {
-                isLoading.postValue(false);
-                chartData.postValue(new PieChartData(0, 0));
-                todayItems.postValue(new ArrayList<>());
+                errorMessage.postValue("Error al cargar deudores: " + (e != null ? e.getMessage() : "ID nulo"));
+                deudoresChartData.postValue(new PieChartData(0, 0));
+                todayDeudoresItems.postValue(new ArrayList<>());
+                checkLoadingComplete();
                 return;
             }
-            itemsListener = db.deudoresCollection.document(deudorId).collection("items")
-                    .addSnapshotListener((querySnapshot, error) -> {
+            deudoresListener = db.deudoresCollection.document(deudorId).collection("items")
+                    .addSnapshotListener((QuerySnapshot querySnapshot, FirebaseFirestoreException error) -> {
                         if (error != null || querySnapshot == null) {
-                            isLoading.postValue(false);
-                            chartData.postValue(new PieChartData(0, 0));
-                            todayItems.postValue(new ArrayList<>());
+                            errorMessage.postValue("Error al cargar ítems de deudores: " + (error != null ? error.getMessage() : "Datos nulos"));
+                            deudoresChartData.postValue(new PieChartData(0, 0));
+                            todayDeudoresItems.postValue(new ArrayList<>());
+                            checkLoadingComplete();
                             return;
                         }
                         List<ItemDeudores> itemDeudores = new ArrayList<>();
@@ -74,13 +92,11 @@ public class DashboardViewModel extends ViewModel {
                                     monto,
                                     Boolean.TRUE.equals(doc.getBoolean("cancelado"))
                             );
-
                             String fechaStr = doc.getString("fecha");
                             if (fechaStr != null) {
                                 item.setFecha(fechaStr);
                             }
                             itemDeudores.add(item);
-
                             if (fechaStr != null && fechaStr.equals(todayDate)) {
                                 todayItemDeudores.add(item);
                             }
@@ -96,26 +112,109 @@ public class DashboardViewModel extends ViewModel {
                             }
                         }
 
-                        chartData.postValue(new PieChartData(cancelados, noCancelados));
-                        todayItems.postValue(todayItemDeudores);
-                        isLoading.postValue(false);
+                        deudoresChartData.postValue(new PieChartData(cancelados, noCancelados));
+                        todayDeudoresItems.postValue(todayItemDeudores);
+                        checkLoadingComplete();
+                    });
+        });
+
+        // Load Creditors
+        db.obtenerAcreedoresPrincipal((acreedorId, e) -> {
+            if (e != null || acreedorId == null) {
+                errorMessage.postValue("Error al cargar acreedores: " + (e != null ? e.getMessage() : "ID nulo"));
+                acreedoresChartData.postValue(new PieChartData(0, 0));
+                todayAcreedoresItems.postValue(new ArrayList<>());
+                checkLoadingComplete();
+                return;
+            }
+            acreedoresListener = db.deudoresCollection.document(acreedorId).collection("items")
+                    .addSnapshotListener((QuerySnapshot querySnapshot, FirebaseFirestoreException error) -> {
+                        if (error != null || querySnapshot == null) {
+                            errorMessage.postValue("Error al cargar ítems de acreedores: " + (error != null ? error.getMessage() : "Datos nulos"));
+                            acreedoresChartData.postValue(new PieChartData(0, 0));
+                            todayAcreedoresItems.postValue(new ArrayList<>());
+                            checkLoadingComplete();
+                            return;
+                        }
+                        List<ItemAcreedores> itemAcreedores = new ArrayList<>();
+                        List<ItemAcreedores> todayItemAcreedores = new ArrayList<>();
+                        String todayDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+
+                        for (QueryDocumentSnapshot doc : querySnapshot) {
+                            double monto = doc.getDouble("monto") != null ? doc.getDouble("monto") : 0.0;
+                            ItemAcreedores item = new ItemAcreedores(
+                                    doc.getId(),
+                                    doc.getString("nombre"),
+                                    doc.getString("detalle"),
+                                    monto,
+                                    Boolean.TRUE.equals(doc.getBoolean("cancelado"))
+                            );
+                            String fechaStr = doc.getString("fecha");
+                            if (fechaStr != null) {
+                                item.setFecha(fechaStr);
+                            }
+                            itemAcreedores.add(item);
+                            if (fechaStr != null && fechaStr.equals(todayDate)) {
+                                todayItemAcreedores.add(item);
+                            }
+                        }
+
+                        int cancelados = 0;
+                        int noCancelados = 0;
+                        for (ItemAcreedores item : itemAcreedores) {
+                            if (item.isCancelado()) {
+                                cancelados++;
+                            } else {
+                                noCancelados++;
+                            }
+                        }
+
+                        acreedoresChartData.postValue(new PieChartData(cancelados, noCancelados));
+                        todayAcreedoresItems.postValue(todayItemAcreedores);
+                        checkLoadingComplete();
                     });
         });
     }
-    public LiveData<PieChartData> getChartData() {
-        return chartData;
+
+    private void checkLoadingComplete() {
+        loadCounter++;
+        if (loadCounter >= 2) { // Ambos conjuntos (deudores y acreedores) han intentado cargarse
+            isLoading.postValue(false);
+        }
     }
-    public LiveData<List<ItemDeudores>> getTodayItems() {
-        return todayItems;
+
+    public LiveData<PieChartData> getDeudoresChartData() {
+        return deudoresChartData;
     }
+
+    public LiveData<List<ItemDeudores>> getTodayDeudoresItems() {
+        return todayDeudoresItems;
+    }
+
+    public LiveData<PieChartData> getAcreedoresChartData() {
+        return acreedoresChartData;
+    }
+
+    public LiveData<List<ItemAcreedores>> getTodayAcreedoresItems() {
+        return todayAcreedoresItems;
+    }
+
     public LiveData<Boolean> getIsLoading() {
         return isLoading;
     }
+
+    public LiveData<String> getErrorMessage() {
+        return errorMessage;
+    }
+
     @Override
     protected void onCleared() {
         super.onCleared();
-        if (itemsListener != null) {
-            itemsListener.remove();
+        if (deudoresListener != null) {
+            deudoresListener.remove();
+        }
+        if (acreedoresListener != null) {
+            acreedoresListener.remove();
         }
     }
 }
