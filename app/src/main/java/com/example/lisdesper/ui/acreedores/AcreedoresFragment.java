@@ -183,20 +183,6 @@ public class AcreedoresFragment extends Fragment {
         EditText etDetalle = dialogView.findViewById(R.id.etDetalle);
         EditText etMonto = dialogView.findViewById(R.id.etMonto);
         etMonto.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-
-        AutoCompleteTextView autoCompleteTextView = (AutoCompleteTextView) etNombre;
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line);
-        autoCompleteTextView.setAdapter(adapter);
-        autoCompleteTextView.setThreshold(1);
-
-        acreedoresViewModel.getNombresParaAutocompletado().observe(getViewLifecycleOwner(), nombres -> {
-            if (nombres != null) {
-                adapter.clear();
-                adapter.addAll(nombres);
-                adapter.notifyDataSetChanged();
-            }
-        });
-
         builder.setView(dialogView)
                 .setTitle("Nuevo")
                 .setPositiveButton("Agregar", (dialog, which) -> {

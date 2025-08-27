@@ -183,19 +183,6 @@ public class DeudoresFragment extends Fragment {
         EditText etMonto = dialogView.findViewById(R.id.etMonto);
         etMonto.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
 
-        AutoCompleteTextView autoCompleteTextView = (AutoCompleteTextView) etNombre;
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line);
-        autoCompleteTextView.setAdapter(adapter);
-        autoCompleteTextView.setThreshold(1);
-
-        deudoresViewModel.getNombresParaAutocompletado().observe(getViewLifecycleOwner(), nombres -> {
-            if (nombres != null) {
-                adapter.clear();
-                adapter.addAll(nombres);
-                adapter.notifyDataSetChanged();
-            }
-        });
-
         builder.setView(dialogView)
                 .setTitle("Nuevo")
                 .setPositiveButton("Agregar", (dialog, which) -> {
