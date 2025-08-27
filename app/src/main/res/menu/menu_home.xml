@@ -1,10 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item
-        android:id="@+id/action_toggle_theme"
-        android:title="Tema Claro" />
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/action_settings"
-        android:title="Tema Oscuro" />
+        android:id="@+id/action_filter_date"
+        android:icon="@drawable/ic_calendar_black_24dp"
+        android:title="Filtrar Fecha"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/action_toggle_theme"
+        android:icon="@drawable/ic_light_mode_black_24dp"
+        android:title="Cambiar Tema"
+        app:showAsAction="always" />
 </menu>

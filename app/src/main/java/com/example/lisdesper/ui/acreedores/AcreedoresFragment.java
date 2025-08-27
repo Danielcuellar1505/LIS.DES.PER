@@ -38,6 +38,7 @@ public class AcreedoresFragment extends Fragment {
     private boolean mostrarCancelados = false;
     private AlertDialog loadingDialog;
     private AlertDialog cancellationDialog;
+    private String selectedDateFilter = null;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -110,6 +111,14 @@ public class AcreedoresFragment extends Fragment {
 
         return binding.getRoot();
     }
+    public void filterByDate(String fecha) {
+        selectedDateFilter = fecha;
+        actualizarAcreedores();
+    }
+    public void clearDateFilter() {
+        selectedDateFilter = null;
+        actualizarAcreedores();
+    }
 
     private void setButtonIconAndText(boolean mostrarCancelados) {
         int drawableRes = mostrarCancelados ? R.drawable.ic_close_eye_black_24dp : R.drawable.ic_open_eye_black_24dp;
@@ -131,13 +140,16 @@ public class AcreedoresFragment extends Fragment {
             String lastFecha = null;
             for (int i = 0; i < itemAcreedores.size(); i++) {
                 ItemAcreedores it = itemAcreedores.get(i);
-                if (mostrarCancelados || !it.isCancelado()) {
-                    String fecha = it.getFecha();
-                    if (lastFecha == null || !lastFecha.equals(fecha)) {
-                        flattened.add(AcreedoresEntry.header(formatearFechaParaMostrar(fecha)));
-                        lastFecha = fecha;
+                // Filtrar por fecha si hay un filtro activo
+                if (selectedDateFilter == null || it.getFecha().equals(selectedDateFilter)) {
+                    if (mostrarCancelados || !it.isCancelado()) {
+                        String fecha = it.getFecha();
+                        if (lastFecha == null || !lastFecha.equals(fecha)) {
+                            flattened.add(AcreedoresEntry.header(formatearFechaParaMostrar(fecha)));
+                            lastFecha = fecha;
+                        }
+                        flattened.add(AcreedoresEntry.item(it, i));
                     }
-                    flattened.add(AcreedoresEntry.item(it, i));
                 }
             }
         }

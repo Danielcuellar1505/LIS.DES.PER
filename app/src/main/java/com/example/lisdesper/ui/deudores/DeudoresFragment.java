@@ -38,6 +38,7 @@ public class DeudoresFragment extends Fragment {
     private boolean mostrarCancelados = false;
     private AlertDialog loadingDialog;
     private AlertDialog cancellationDialog;
+    private String selectedDateFilter = null;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -110,6 +111,14 @@ public class DeudoresFragment extends Fragment {
 
         return binding.getRoot();
     }
+    public void filterByDate(String fecha) {
+        selectedDateFilter = fecha;
+        actualizarDeudores();
+    }
+    public void clearDateFilter() {
+        selectedDateFilter = null;
+        actualizarDeudores();
+    }
 
     private void setButtonIconAndText(boolean mostrarCancelados) {
         int drawableRes = mostrarCancelados ? R.drawable.ic_close_eye_black_24dp : R.drawable.ic_open_eye_black_24dp;
@@ -131,13 +140,15 @@ public class DeudoresFragment extends Fragment {
             String lastFecha = null;
             for (int i = 0; i < itemDeudores.size(); i++) {
                 ItemDeudores it = itemDeudores.get(i);
-                if (mostrarCancelados || !it.isCancelado()) {
-                    String fecha = it.getFecha();
-                    if (lastFecha == null || !lastFecha.equals(fecha)) {
-                        flattened.add(DeudoresEntry.header(formatearFechaParaMostrar(fecha)));
-                        lastFecha = fecha;
+                if (selectedDateFilter == null || it.getFecha().equals(selectedDateFilter)) {
+                    if (mostrarCancelados || !it.isCancelado()) {
+                        String fecha = it.getFecha();
+                        if (lastFecha == null || !lastFecha.equals(fecha)) {
+                            flattened.add(DeudoresEntry.header(formatearFechaParaMostrar(fecha)));
+                            lastFecha = fecha;
+                        }
+                        flattened.add(DeudoresEntry.item(it, i));
                     }
-                    flattened.add(DeudoresEntry.item(it, i));
                 }
             }
         }
