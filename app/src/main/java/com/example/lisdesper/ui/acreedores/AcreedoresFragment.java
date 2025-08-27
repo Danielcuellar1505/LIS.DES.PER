@@ -10,6 +10,8 @@ import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -39,6 +41,7 @@ public class AcreedoresFragment extends Fragment {
     private AlertDialog loadingDialog;
     private AlertDialog cancellationDialog;
     private String selectedDateFilter = null;
+    private String selectedNameFilter = null;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -91,6 +94,10 @@ public class AcreedoresFragment extends Fragment {
             actualizarAcreedores();
         });
 
+        acreedoresViewModel.getNombresParaAutocompletado().observe(getViewLifecycleOwner(), nombres -> {
+            // Usado en el diálogo de agregar/editar
+        });
+
         binding.fabAgregarAcreedores.setOnClickListener(v -> {
             Boolean isLoading = acreedoresViewModel.getIsLoading().getValue();
             if (isLoading == null || !isLoading) {
@@ -111,12 +118,24 @@ public class AcreedoresFragment extends Fragment {
 
         return binding.getRoot();
     }
+
     public void filterByDate(String fecha) {
         selectedDateFilter = fecha;
         actualizarAcreedores();
     }
+
     public void clearDateFilter() {
         selectedDateFilter = null;
+        actualizarAcreedores();
+    }
+
+    public void filterByName(String nombre) {
+        selectedNameFilter = nombre;
+        actualizarAcreedores();
+    }
+
+    public void clearNameFilter() {
+        selectedNameFilter = null;
         actualizarAcreedores();
     }
 
@@ -140,8 +159,8 @@ public class AcreedoresFragment extends Fragment {
             String lastFecha = null;
             for (int i = 0; i < itemAcreedores.size(); i++) {
                 ItemAcreedores it = itemAcreedores.get(i);
-                // Filtrar por fecha si hay un filtro activo
-                if (selectedDateFilter == null || it.getFecha().equals(selectedDateFilter)) {
+                if ((selectedDateFilter == null || it.getFecha().equals(selectedDateFilter)) &&
+                        (selectedNameFilter == null || it.getNombre().equalsIgnoreCase(selectedNameFilter))) {
                     if (mostrarCancelados || !it.isCancelado()) {
                         String fecha = it.getFecha();
                         if (lastFecha == null || !lastFecha.equals(fecha)) {
@@ -164,6 +183,19 @@ public class AcreedoresFragment extends Fragment {
         EditText etDetalle = dialogView.findViewById(R.id.etDetalle);
         EditText etMonto = dialogView.findViewById(R.id.etMonto);
         etMonto.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+
+        AutoCompleteTextView autoCompleteTextView = (AutoCompleteTextView) etNombre;
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line);
+        autoCompleteTextView.setAdapter(adapter);
+        autoCompleteTextView.setThreshold(1);
+
+        acreedoresViewModel.getNombresParaAutocompletado().observe(getViewLifecycleOwner(), nombres -> {
+            if (nombres != null) {
+                adapter.clear();
+                adapter.addAll(nombres);
+                adapter.notifyDataSetChanged();
+            }
+        });
 
         builder.setView(dialogView)
                 .setTitle("Nuevo")
@@ -203,6 +235,19 @@ public class AcreedoresFragment extends Fragment {
         etNombre.setText(item.getNombre());
         etDetalle.setText(item.getDetalle());
         etMonto.setText(String.format(Locale.getDefault(), "%.2f", item.getMonto()));
+
+        AutoCompleteTextView autoCompleteTextView = (AutoCompleteTextView) etNombre;
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line);
+        autoCompleteTextView.setAdapter(adapter);
+        autoCompleteTextView.setThreshold(1);
+
+        acreedoresViewModel.getNombresParaAutocompletado().observe(getViewLifecycleOwner(), nombres -> {
+            if (nombres != null) {
+                adapter.clear();
+                adapter.addAll(nombres);
+                adapter.notifyDataSetChanged();
+            }
+        });
 
         builder.setView(dialogView)
                 .setTitle("Editar Ítem")

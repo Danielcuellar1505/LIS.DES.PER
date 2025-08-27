@@ -15,14 +15,17 @@ import java.util.List;
 public class DeudoresViewModel extends ViewModel {
     private final MutableLiveData<List<Deudores>> deudores;
     private final MutableLiveData<Boolean> isLoading;
+    private final MutableLiveData<List<String>> nombresParaAutocompletado;
     private final CBaseDatos db;
     private String currentDeudoresId;
     private String currentDeudoresNombre = "Deudores Principal";
     private ListenerRegistration itemsListener;
+    private String selectedNameFilter = null;
 
     public DeudoresViewModel() {
         deudores = new MutableLiveData<>(new ArrayList<>());
         isLoading = new MutableLiveData<>(true);
+        nombresParaAutocompletado = new MutableLiveData<>(new ArrayList<>());
         db = CBaseDatos.getInstance();
         cargarDeudoresPrincipal();
     }
@@ -39,6 +42,11 @@ public class DeudoresViewModel extends ViewModel {
             List<Deudores> current = new ArrayList<>();
             current.add(new Deudores(currentDeudoresNombre));
             deudores.postValue(current);
+            db.obtenerNombresParaAutocompletado(deudorId, deudorId, (nombres, error) -> {
+                if (error == null && nombres != null) {
+                    nombresParaAutocompletado.postValue(nombres);
+                }
+            });
 
             itemsListener = db.deudoresCollection.document(deudorId).collection("items")
                     .addSnapshotListener((querySnapshot, error) -> {
@@ -60,7 +68,9 @@ public class DeudoresViewModel extends ViewModel {
                             if (fechaStr != null) {
                                 itemDeudores.setFecha(fechaStr);
                             }
-                            newItemDeudores.add(itemDeudores);
+                            if (selectedNameFilter == null || itemDeudores.getNombre().equalsIgnoreCase(selectedNameFilter)) {
+                                newItemDeudores.add(itemDeudores);
+                            }
                         }
                         Collections.sort(newItemDeudores, (a, b) -> {
                             if (a.getFecha() == null) return 1;
@@ -77,8 +87,22 @@ public class DeudoresViewModel extends ViewModel {
         });
     }
 
+    public void filterByName(String nombre) {
+        selectedNameFilter = nombre;
+        cargarDeudoresPrincipal();
+    }
+
+    public void clearNameFilter() {
+        selectedNameFilter = null;
+        cargarDeudoresPrincipal();
+    }
+
     public LiveData<List<Deudores>> getDeudores() {
         return deudores;
+    }
+
+    public LiveData<List<String>> getNombresParaAutocompletado() {
+        return nombresParaAutocompletado;
     }
 
     public void agregarItem(int posicionDeudores, ItemDeudores itemDeudores) {
@@ -94,5 +118,13 @@ public class DeudoresViewModel extends ViewModel {
             return;
         }
         db.actualizarItem(currentDeudoresId, itemDeudoresActualizado.getId(), itemDeudoresActualizado, null);
+    }
+
+    @Override
+    protected void onCleared() {
+        if (itemsListener != null) {
+            itemsListener.remove();
+        }
+        super.onCleared();
     }
 }

@@ -9,11 +9,13 @@ import com.example.lisdesper.ui.acreedores.ItemAcreedores;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class CBaseDatos {
     private static CBaseDatos instance;
@@ -225,6 +227,115 @@ public class CBaseDatos {
                 })
                 .addOnFailureListener(e -> {
                     if (listener != null) listener.onComplete(null, e);
+                });
+    }
+
+    public void buscarItemsDeudoresPorNombre(String deudorId, String query, OnCompleteListener<List<ItemDeudores>> listener) {
+        if (query == null || query.isEmpty()) {
+            obtenerItemsDeDeudores(deudorId, listener);
+            return;
+        }
+        String queryLower = query.toLowerCase(Locale.getDefault());
+        String queryUpper = queryLower + "\uf8ff"; // Carácter Unicode alto para rango
+        deudoresCollection.document(deudorId).collection("items")
+                .whereGreaterThanOrEqualTo("nombre", queryLower)
+                .whereLessThanOrEqualTo("nombre", queryUpper)
+                .limit(10)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    List<ItemDeudores> listaDeudores = new ArrayList<>();
+                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                        ItemDeudores item = new ItemDeudores(
+                                document.getId(),
+                                document.getString("nombre"),
+                                document.getString("detalle"),
+                                document.getDouble("monto"),
+                                Boolean.TRUE.equals(document.getBoolean("cancelado"))
+                        );
+                        String fechaStr = document.getString("fecha");
+                        if (fechaStr != null) {
+                            item.setFecha(fechaStr);
+                        }
+                        listaDeudores.add(item);
+                    }
+                    if (listener != null) listener.onComplete(listaDeudores, null);
+                })
+                .addOnFailureListener(e -> {
+                    if (listener != null) listener.onComplete(null, e);
+                });
+    }
+
+    public void buscarItemsAcreedoresPorNombre(String acreedorId, String query, OnCompleteListener<List<ItemAcreedores>> listener) {
+        if (query == null || query.isEmpty()) {
+            obtenerItemsDeAcreedores(acreedorId, listener);
+            return;
+        }
+        String queryLower = query.toLowerCase(Locale.getDefault());
+        String queryUpper = queryLower + "\uf8ff";
+        deudoresCollection.document(acreedorId).collection("items")
+                .whereGreaterThanOrEqualTo("nombre", queryLower)
+                .whereLessThanOrEqualTo("nombre", queryUpper)
+                .limit(10)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    List<ItemAcreedores> listaAcreedores = new ArrayList<>();
+                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                        ItemAcreedores item = new ItemAcreedores(
+                                document.getId(),
+                                document.getString("nombre"),
+                                document.getString("detalle"),
+                                document.getDouble("monto"),
+                                Boolean.TRUE.equals(document.getBoolean("cancelado"))
+                        );
+                        String fechaStr = document.getString("fecha");
+                        if (fechaStr != null) {
+                            item.setFecha(fechaStr);
+                        }
+                        listaAcreedores.add(item);
+                    }
+                    if (listener != null) listener.onComplete(listaAcreedores, null);
+                })
+                .addOnFailureListener(e -> {
+                    if (listener != null) listener.onComplete(null, e);
+                });
+    }
+
+    public void obtenerNombresParaAutocompletado(String deudorId, String acreedorId, OnCompleteListener<List<String>> listener) {
+        AtomicInteger pendingTasks = new AtomicInteger(2);
+        List<String> nombres = Collections.synchronizedList(new ArrayList<>());
+        deudoresCollection.document(deudorId).collection("items").get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                        String nombre = document.getString("nombre");
+                        if (nombre != null && !nombres.contains(nombre)) {
+                            nombres.add(nombre);
+                        }
+                    }
+                    if (pendingTasks.decrementAndGet() == 0) {
+                        if (listener != null) listener.onComplete(nombres, null);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    if (pendingTasks.decrementAndGet() == 0) {
+                        if (listener != null) listener.onComplete(nombres, e);
+                    }
+                });
+        deudoresCollection.document(acreedorId).collection("items").get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                        String nombre = document.getString("nombre");
+                        if (nombre != null && !nombres.contains(nombre)) {
+                            nombres.add(nombre);
+                        }
+                    }
+                    if (pendingTasks.decrementAndGet() == 0) {
+                        if (listener != null) listener.onComplete(nombres, null);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    if (pendingTasks.decrementAndGet() == 0) {
+                        if (listener != null) listener.onComplete(nombres, e);
+                    }
                 });
     }
 

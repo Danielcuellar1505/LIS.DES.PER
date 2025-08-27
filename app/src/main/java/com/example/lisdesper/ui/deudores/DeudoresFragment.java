@@ -10,6 +10,8 @@ import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -39,6 +41,7 @@ public class DeudoresFragment extends Fragment {
     private AlertDialog loadingDialog;
     private AlertDialog cancellationDialog;
     private String selectedDateFilter = null;
+    private String selectedNameFilter = null;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -91,6 +94,9 @@ public class DeudoresFragment extends Fragment {
             actualizarDeudores();
         });
 
+        deudoresViewModel.getNombresParaAutocompletado().observe(getViewLifecycleOwner(), nombres -> {
+        });
+
         binding.fabAgregarDeudores.setOnClickListener(v -> {
             Boolean isLoading = deudoresViewModel.getIsLoading().getValue();
             if (isLoading == null || !isLoading) {
@@ -111,12 +117,24 @@ public class DeudoresFragment extends Fragment {
 
         return binding.getRoot();
     }
+
     public void filterByDate(String fecha) {
         selectedDateFilter = fecha;
         actualizarDeudores();
     }
+
     public void clearDateFilter() {
         selectedDateFilter = null;
+        actualizarDeudores();
+    }
+
+    public void filterByName(String nombre) {
+        selectedNameFilter = nombre;
+        actualizarDeudores();
+    }
+
+    public void clearNameFilter() {
+        selectedNameFilter = null;
         actualizarDeudores();
     }
 
@@ -140,7 +158,8 @@ public class DeudoresFragment extends Fragment {
             String lastFecha = null;
             for (int i = 0; i < itemDeudores.size(); i++) {
                 ItemDeudores it = itemDeudores.get(i);
-                if (selectedDateFilter == null || it.getFecha().equals(selectedDateFilter)) {
+                if ((selectedDateFilter == null || it.getFecha().equals(selectedDateFilter)) &&
+                        (selectedNameFilter == null || it.getNombre().equalsIgnoreCase(selectedNameFilter))) {
                     if (mostrarCancelados || !it.isCancelado()) {
                         String fecha = it.getFecha();
                         if (lastFecha == null || !lastFecha.equals(fecha)) {
@@ -163,6 +182,19 @@ public class DeudoresFragment extends Fragment {
         EditText etDetalle = dialogView.findViewById(R.id.etDetalle);
         EditText etMonto = dialogView.findViewById(R.id.etMonto);
         etMonto.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+
+        AutoCompleteTextView autoCompleteTextView = (AutoCompleteTextView) etNombre;
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line);
+        autoCompleteTextView.setAdapter(adapter);
+        autoCompleteTextView.setThreshold(1);
+
+        deudoresViewModel.getNombresParaAutocompletado().observe(getViewLifecycleOwner(), nombres -> {
+            if (nombres != null) {
+                adapter.clear();
+                adapter.addAll(nombres);
+                adapter.notifyDataSetChanged();
+            }
+        });
 
         builder.setView(dialogView)
                 .setTitle("Nuevo")
@@ -202,6 +234,19 @@ public class DeudoresFragment extends Fragment {
         etNombre.setText(item.getNombre());
         etDetalle.setText(item.getDetalle());
         etMonto.setText(String.format(Locale.getDefault(), "%.2f", item.getMonto()));
+
+        AutoCompleteTextView autoCompleteTextView = (AutoCompleteTextView) etNombre;
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line);
+        autoCompleteTextView.setAdapter(adapter);
+        autoCompleteTextView.setThreshold(1);
+
+        deudoresViewModel.getNombresParaAutocompletado().observe(getViewLifecycleOwner(), nombres -> {
+            if (nombres != null) {
+                adapter.clear();
+                adapter.addAll(nombres);
+                adapter.notifyDataSetChanged();
+            }
+        });
 
         builder.setView(dialogView)
                 .setTitle("Editar Ítem")

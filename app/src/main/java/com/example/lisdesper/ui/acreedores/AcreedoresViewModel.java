@@ -15,14 +15,17 @@ import java.util.List;
 public class AcreedoresViewModel extends ViewModel {
     private final MutableLiveData<List<Acreedores>> acreedores;
     private final MutableLiveData<Boolean> isLoading;
+    private final MutableLiveData<List<String>> nombresParaAutocompletado;
     private final CBaseDatos db;
     private String currentAcreedoresId;
     private String currentAcreedoresNombre = "Acreedores Principal";
     private ListenerRegistration itemsListener;
+    private String selectedNameFilter = null;
 
     public AcreedoresViewModel() {
         acreedores = new MutableLiveData<>(new ArrayList<>());
         isLoading = new MutableLiveData<>(true);
+        nombresParaAutocompletado = new MutableLiveData<>(new ArrayList<>());
         db = CBaseDatos.getInstance();
         cargarAcreedoresPrincipal();
     }
@@ -39,6 +42,12 @@ public class AcreedoresViewModel extends ViewModel {
             List<Acreedores> current = new ArrayList<>();
             current.add(new Acreedores(currentAcreedoresNombre));
             acreedores.postValue(current);
+
+            db.obtenerNombresParaAutocompletado(acreedorId, acreedorId, (nombres, error) -> {
+                if (error == null && nombres != null) {
+                    nombresParaAutocompletado.postValue(nombres);
+                }
+            });
 
             itemsListener = db.deudoresCollection.document(acreedorId).collection("items")
                     .addSnapshotListener((querySnapshot, error) -> {
@@ -60,7 +69,9 @@ public class AcreedoresViewModel extends ViewModel {
                             if (fechaStr != null) {
                                 itemAcreedores.setFecha(fechaStr);
                             }
-                            newItemAcreedores.add(itemAcreedores);
+                            if (selectedNameFilter == null || itemAcreedores.getNombre().equalsIgnoreCase(selectedNameFilter)) {
+                                newItemAcreedores.add(itemAcreedores);
+                            }
                         }
                         Collections.sort(newItemAcreedores, (a, b) -> {
                             if (a.getFecha() == null) return 1;
@@ -77,8 +88,22 @@ public class AcreedoresViewModel extends ViewModel {
         });
     }
 
+    public void filterByName(String nombre) {
+        selectedNameFilter = nombre;
+        cargarAcreedoresPrincipal();
+    }
+
+    public void clearNameFilter() {
+        selectedNameFilter = null;
+        cargarAcreedoresPrincipal();
+    }
+
     public LiveData<List<Acreedores>> getAcreedores() {
         return acreedores;
+    }
+
+    public LiveData<List<String>> getNombresParaAutocompletado() {
+        return nombresParaAutocompletado;
     }
 
     public void agregarItem(int posicionAcreedores, ItemAcreedores itemAcreedores) {
