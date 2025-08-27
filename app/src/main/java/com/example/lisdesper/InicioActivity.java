@@ -127,6 +127,9 @@ public class InicioActivity extends AppCompatActivity {
             }
             return true;
         } else if (item.getItemId() == R.id.action_search) {
+            if (currentFragment instanceof DashboardFragment) {
+                return true;
+            }
             if (isSearchActive) {
                 clearSearch();
             } else {
