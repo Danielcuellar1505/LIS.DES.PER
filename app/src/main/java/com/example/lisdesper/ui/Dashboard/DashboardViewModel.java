@@ -29,6 +29,7 @@ public class DashboardViewModel extends ViewModel {
     private ListenerRegistration deudoresListener;
     private ListenerRegistration acreedoresListener;
     private int loadCounter = 0; // Contador para rastrear las cargas completadas
+    private String selectedDateFilter = null; // Almacena la fecha seleccionada para filtrar
 
     public static class PieChartData {
         private final int cancelados;
@@ -57,11 +58,18 @@ public class DashboardViewModel extends ViewModel {
         cargarDatos();
     }
 
+    public void filterByDate(String fecha) {
+        selectedDateFilter = fecha;
+        cargarDatos();
+    }
+    public void clearDateFilter() {
+        selectedDateFilter = null;
+        cargarDatos();
+    }
     private void cargarDatos() {
         isLoading.setValue(true);
-        loadCounter = 0; // Reiniciar el contador
+        loadCounter = 0;
 
-        // Load Debtors
         db.obtenerDeudoresPrincipal((deudorId, e) -> {
             if (e != null || deudorId == null) {
                 errorMessage.postValue("Error al cargar deudores: " + (e != null ? e.getMessage() : "ID nulo"));
@@ -80,8 +88,8 @@ public class DashboardViewModel extends ViewModel {
                             return;
                         }
                         List<ItemDeudores> itemDeudores = new ArrayList<>();
-                        List<ItemDeudores> todayItemDeudores = new ArrayList<>();
-                        String todayDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+                        List<ItemDeudores> filteredDeudoresItems = new ArrayList<>();
+                        String filterDate = selectedDateFilter != null ? selectedDateFilter : new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
 
                         for (QueryDocumentSnapshot doc : querySnapshot) {
                             double monto = doc.getDouble("monto") != null ? doc.getDouble("monto") : 0.0;
@@ -97,11 +105,10 @@ public class DashboardViewModel extends ViewModel {
                                 item.setFecha(fechaStr);
                             }
                             itemDeudores.add(item);
-                            if (fechaStr != null && fechaStr.equals(todayDate)) {
-                                todayItemDeudores.add(item);
+                            if (fechaStr != null && fechaStr.equals(filterDate)) {
+                                filteredDeudoresItems.add(item);
                             }
                         }
-
                         int cancelados = 0;
                         int noCancelados = 0;
                         for (ItemDeudores item : itemDeudores) {
@@ -111,14 +118,12 @@ public class DashboardViewModel extends ViewModel {
                                 noCancelados++;
                             }
                         }
-
                         deudoresChartData.postValue(new PieChartData(cancelados, noCancelados));
-                        todayDeudoresItems.postValue(todayItemDeudores);
+                        todayDeudoresItems.postValue(filteredDeudoresItems);
                         checkLoadingComplete();
                     });
         });
 
-        // Load Creditors
         db.obtenerAcreedoresPrincipal((acreedorId, e) -> {
             if (e != null || acreedorId == null) {
                 errorMessage.postValue("Error al cargar acreedores: " + (e != null ? e.getMessage() : "ID nulo"));
@@ -137,8 +142,8 @@ public class DashboardViewModel extends ViewModel {
                             return;
                         }
                         List<ItemAcreedores> itemAcreedores = new ArrayList<>();
-                        List<ItemAcreedores> todayItemAcreedores = new ArrayList<>();
-                        String todayDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+                        List<ItemAcreedores> filteredAcreedoresItems = new ArrayList<>();
+                        String filterDate = selectedDateFilter != null ? selectedDateFilter : new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
 
                         for (QueryDocumentSnapshot doc : querySnapshot) {
                             double monto = doc.getDouble("monto") != null ? doc.getDouble("monto") : 0.0;
@@ -154,8 +159,8 @@ public class DashboardViewModel extends ViewModel {
                                 item.setFecha(fechaStr);
                             }
                             itemAcreedores.add(item);
-                            if (fechaStr != null && fechaStr.equals(todayDate)) {
-                                todayItemAcreedores.add(item);
+                            if (fechaStr != null && fechaStr.equals(filterDate)) {
+                                filteredAcreedoresItems.add(item);
                             }
                         }
 
@@ -170,7 +175,7 @@ public class DashboardViewModel extends ViewModel {
                         }
 
                         acreedoresChartData.postValue(new PieChartData(cancelados, noCancelados));
-                        todayAcreedoresItems.postValue(todayItemAcreedores);
+                        todayAcreedoresItems.postValue(filteredAcreedoresItems);
                         checkLoadingComplete();
                     });
         });
@@ -178,35 +183,28 @@ public class DashboardViewModel extends ViewModel {
 
     private void checkLoadingComplete() {
         loadCounter++;
-        if (loadCounter >= 2) { // Ambos conjuntos (deudores y acreedores) han intentado cargarse
+        if (loadCounter >= 2) {
             isLoading.postValue(false);
         }
     }
-
     public LiveData<PieChartData> getDeudoresChartData() {
         return deudoresChartData;
     }
-
     public LiveData<List<ItemDeudores>> getTodayDeudoresItems() {
         return todayDeudoresItems;
     }
-
     public LiveData<PieChartData> getAcreedoresChartData() {
         return acreedoresChartData;
     }
-
     public LiveData<List<ItemAcreedores>> getTodayAcreedoresItems() {
         return todayAcreedoresItems;
     }
-
     public LiveData<Boolean> getIsLoading() {
         return isLoading;
     }
-
     public LiveData<String> getErrorMessage() {
         return errorMessage;
     }
-
     @Override
     protected void onCleared() {
         super.onCleared();

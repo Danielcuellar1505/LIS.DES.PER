@@ -22,6 +22,7 @@ import androidx.navigation.ui.NavigationUI;
 import com.example.lisdesper.databinding.ActivityInicioBinding;
 import com.example.lisdesper.ui.deudores.DeudoresFragment;
 import com.example.lisdesper.ui.acreedores.AcreedoresFragment;
+import com.example.lisdesper.ui.Dashboard.DashboardFragment;
 import com.example.lisdesper.Helpers.ThemeHelper;
 import com.example.lisdesper.R;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -121,6 +122,16 @@ public class InicioActivity extends AppCompatActivity {
                     isDateFilterActive = true;
                     item.setIcon(R.drawable.ic_clear_filter_24dp);
                 }
+            } else if (currentFragment instanceof DashboardFragment) {
+                if (isDateFilterActive) {
+                    ((DashboardFragment) currentFragment).clearDateFilter();
+                    isDateFilterActive = false;
+                    item.setIcon(R.drawable.ic_calendar_black_24dp);
+                } else {
+                    showCustomCalendarDialog(currentFragment);
+                    isDateFilterActive = true;
+                    item.setIcon(R.drawable.ic_clear_filter_24dp);
+                }
             }
             return true;
         }
@@ -149,6 +160,8 @@ public class InicioActivity extends AppCompatActivity {
                 ((DeudoresFragment) fragment).filterByDate(formattedDate);
             } else if (fragment instanceof AcreedoresFragment) {
                 ((AcreedoresFragment) fragment).filterByDate(formattedDate);
+            } else if (fragment instanceof DashboardFragment) {
+                ((DashboardFragment) fragment).filterByDate(formattedDate);
             }
             dialog.dismiss();
         });

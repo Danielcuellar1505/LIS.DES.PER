@@ -26,6 +26,7 @@ import com.github.mikephil.charting.formatter.ValueFormatter;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -39,6 +40,7 @@ public class DashboardFragment extends Fragment {
     private ItemsAdapterDashboard adapterAcreedores;
     private boolean isDeudoresExpanded = false;
     private boolean isAcreedoresExpanded = false;
+    private String selectedDateFilter = null; // Almacena la fecha seleccionada para filtrar
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -50,9 +52,7 @@ public class DashboardFragment extends Fragment {
         setupPieChart(binding.pieChartAcreedores);
         setupRecyclerViewDeudores();
         setupRecyclerViewAcreedores();
-        String todayDate = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(new Date());
-        binding.tvTodayDeudoresItemsTitle.setText("Deudas de hoy (" + todayDate + ")");
-        binding.tvTodayAcreedoresItemsTitle.setText("Acreedores de hoy (" + todayDate + ")");
+        updateTitles(); // Actualizar títulos inicialmente
 
         // Configurar botones de acordeón
         binding.btnToggleDeudores.setOnClickListener(v -> toggleDeudores());
@@ -94,7 +94,46 @@ public class DashboardFragment extends Fragment {
 
         return root;
     }
-
+        public void filterByDate(String fecha) {
+        selectedDateFilter = fecha;
+        updateTitles();
+        homeViewModel.filterByDate(fecha);
+    }
+    public void clearDateFilter() {
+        selectedDateFilter = null;
+        updateTitles();
+        homeViewModel.clearDateFilter();
+    }
+    private void updateTitles() {
+        String displayDate;
+        if (selectedDateFilter == null) {
+            displayDate = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(new Date());
+            binding.tvTodayDeudoresItemsTitle.setText("Deudas de hoy (" + displayDate + ")");
+            binding.tvTodayAcreedoresItemsTitle.setText("Acreedores de hoy (" + displayDate + ")");
+        } else {
+            try {
+                SimpleDateFormat parse = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                Date date = parse.parse(selectedDateFilter);
+                SimpleDateFormat out = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+                displayDate = out.format(date);
+                Calendar calNow = Calendar.getInstance();
+                Calendar calThen = Calendar.getInstance();
+                calThen.setTime(date);
+                if (isSameDay(calNow, calThen)) {
+                    displayDate = "HOY — " + displayDate;
+                }
+                binding.tvTodayDeudoresItemsTitle.setText("Deudas de (" + displayDate + ")");
+                binding.tvTodayAcreedoresItemsTitle.setText("Acreedores de (" + displayDate + ")");
+            } catch (Exception e) {
+                binding.tvTodayDeudoresItemsTitle.setText("Deudas de (" + selectedDateFilter + ")");
+                binding.tvTodayAcreedoresItemsTitle.setText("Acreedores de (" + selectedDateFilter + ")");
+            }
+        }
+    }
+    private boolean isSameDay(Calendar c1, Calendar c2) {
+        return c1.get(Calendar.YEAR) == c2.get(Calendar.YEAR)
+                && c1.get(Calendar.DAY_OF_YEAR) == c2.get(Calendar.DAY_OF_YEAR);
+    }
     private void toggleDeudores() {
         isDeudoresExpanded = !isDeudoresExpanded;
         binding.deudoresContent.setVisibility(isDeudoresExpanded ? View.VISIBLE : View.GONE);
@@ -110,7 +149,6 @@ public class DashboardFragment extends Fragment {
                 ? "Grafico de Acreedores \uD83D\uDD3C"
                 : "Grafico de Acreedores \uD83D\uDD3D");
     }
-
 
     private void setupPieChart(PieChart pieChart) {
         pieChart.setUsePercentValues(false);
