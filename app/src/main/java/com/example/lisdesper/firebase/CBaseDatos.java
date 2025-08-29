@@ -21,19 +21,16 @@ public class CBaseDatos {
     private static CBaseDatos instance;
     private final FirebaseFirestore db;
     public final CollectionReference deudoresCollection;
-
     private CBaseDatos() {
         db = FirebaseFirestore.getInstance();
         deudoresCollection = db.collection("BD_LIS_DES_PER");
     }
-
     public static synchronized CBaseDatos getInstance() {
         if (instance == null) {
             instance = new CBaseDatos();
         }
         return instance;
     }
-
     public void agregarItem(String deudorId, ItemDeudores itemDeudores, OnCompleteListener<ItemDeudores> listener) {
         String fechaStr = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
         Map<String, Object> itemData = new HashMap<>();
@@ -65,7 +62,6 @@ public class CBaseDatos {
                     });
         }
     }
-
     public void agregarItemAcreedor(String acreedorId, ItemAcreedores itemAcreedores, OnCompleteListener<ItemAcreedores> listener) {
         String fechaStr = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
         Map<String, Object> itemData = new HashMap<>();
@@ -97,7 +93,6 @@ public class CBaseDatos {
                     });
         }
     }
-
     public void actualizarItem(String deudorId, String itemId, ItemDeudores itemDeudores, OnCompleteListener<Void> listener) {
         Map<String, Object> updates = new HashMap<>();
         updates.put("nombre", itemDeudores.getNombre());
@@ -114,7 +109,6 @@ public class CBaseDatos {
                     if (listener != null) listener.onComplete(null, e);
                 });
     }
-
     public void actualizarItemAcreedor(String acreedorId, String itemId, ItemAcreedores itemAcreedores, OnCompleteListener<Void> listener) {
         Map<String, Object> updates = new HashMap<>();
         updates.put("nombre", itemAcreedores.getNombre());
@@ -131,7 +125,24 @@ public class CBaseDatos {
                     if (listener != null) listener.onComplete(null, e);
                 });
     }
-
+    public void eliminarItem(String deudorId, String itemId, OnCompleteListener<Void> listener) {
+        deudoresCollection.document(deudorId).collection("items").document(itemId).delete()
+                .addOnSuccessListener(aVoid -> {
+                    if (listener != null) listener.onComplete(null, null);
+                })
+                .addOnFailureListener(e -> {
+                    if (listener != null) listener.onComplete(null, e);
+                });
+    }
+    public void eliminarItemAcreedor(String acreedorId, String itemId, OnCompleteListener<Void> listener) {
+        deudoresCollection.document(acreedorId).collection("items").document(itemId).delete()
+                .addOnSuccessListener(aVoid -> {
+                    if (listener != null) listener.onComplete(null, null);
+                })
+                .addOnFailureListener(e -> {
+                    if (listener != null) listener.onComplete(null, e);
+                });
+    }
     public void obtenerDeudoresPrincipal(OnCompleteListener<String> listener) {
         deudoresCollection.whereEqualTo("nombre", "Deudores Principal").limit(1).get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
@@ -155,7 +166,6 @@ public class CBaseDatos {
                     if (listener != null) listener.onComplete(null, e);
                 });
     }
-
     public void obtenerAcreedoresPrincipal(OnCompleteListener<String> listener) {
         deudoresCollection.whereEqualTo("nombre", "Acreedores Principal").limit(1).get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
@@ -179,7 +189,6 @@ public class CBaseDatos {
                     if (listener != null) listener.onComplete(null, e);
                 });
     }
-
     private void obtenerItemsDeDeudores(String deudorId, OnCompleteListener<List<ItemDeudores>> listener) {
         deudoresCollection.document(deudorId).collection("items").get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
@@ -204,7 +213,6 @@ public class CBaseDatos {
                     if (listener != null) listener.onComplete(null, e);
                 });
     }
-
     private void obtenerItemsDeAcreedores(String acreedorId, OnCompleteListener<List<ItemAcreedores>> listener) {
         deudoresCollection.document(acreedorId).collection("items").get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
@@ -229,7 +237,6 @@ public class CBaseDatos {
                     if (listener != null) listener.onComplete(null, e);
                 });
     }
-
     public void buscarItemsDeudoresPorNombre(String deudorId, String query, OnCompleteListener<List<ItemDeudores>> listener) {
         if (query == null || query.isEmpty()) {
             obtenerItemsDeDeudores(deudorId, listener);
@@ -264,7 +271,6 @@ public class CBaseDatos {
                     if (listener != null) listener.onComplete(null, e);
                 });
     }
-
     public void buscarItemsAcreedoresPorNombre(String acreedorId, String query, OnCompleteListener<List<ItemAcreedores>> listener) {
         if (query == null || query.isEmpty()) {
             obtenerItemsDeAcreedores(acreedorId, listener);
@@ -299,7 +305,6 @@ public class CBaseDatos {
                     if (listener != null) listener.onComplete(null, e);
                 });
     }
-
     public void obtenerNombresParaAutocompletado(String deudorId, String acreedorId, OnCompleteListener<List<String>> listener) {
         AtomicInteger pendingTasks = new AtomicInteger(2);
         List<String> nombres = Collections.synchronizedList(new ArrayList<>());
@@ -338,7 +343,6 @@ public class CBaseDatos {
                     }
                 });
     }
-
     public interface OnCompleteListener<T> {
         void onComplete(T result, Exception e);
     }

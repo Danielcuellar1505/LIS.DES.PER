@@ -120,6 +120,12 @@ public class AcreedoresViewModel extends ViewModel {
         }
         db.actualizarItemAcreedor(currentAcreedoresId, itemAcreedoresActualizado.getId(), itemAcreedoresActualizado, null);
     }
+    public void eliminarItem(int posicionAcreedores, String itemId) {
+        if (itemId == null || itemId.isEmpty()) {
+            return;
+        }
+        db.eliminarItemAcreedor(currentAcreedoresId, itemId, null);
+    }
 
     @Override
     protected void onCleared() {

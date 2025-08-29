@@ -71,6 +71,12 @@ public class AcreedoresFragment extends Fragment {
                     if (isLoading == null || !isLoading) {
                         mostrarDialogoEditarItem(item, originalIndex);
                     }
+                },
+                (originalIndex, item) -> {
+                    Boolean isLoading = acreedoresViewModel.getIsLoading().getValue();
+                    if (isLoading == null || !isLoading) {
+                        mostrarDialogoEliminarItem(item, originalIndex);
+                    }
                 });
 
         binding.recyclerViewAcreedores.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -222,19 +228,6 @@ public class AcreedoresFragment extends Fragment {
         etDetalle.setText(item.getDetalle());
         etMonto.setText(String.format(Locale.getDefault(), "%.2f", item.getMonto()));
 
-        AutoCompleteTextView autoCompleteTextView = (AutoCompleteTextView) etNombre;
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line);
-        autoCompleteTextView.setAdapter(adapter);
-        autoCompleteTextView.setThreshold(1);
-
-        acreedoresViewModel.getNombresParaAutocompletado().observe(getViewLifecycleOwner(), nombres -> {
-            if (nombres != null) {
-                adapter.clear();
-                adapter.addAll(nombres);
-                adapter.notifyDataSetChanged();
-            }
-        });
-
         builder.setView(dialogView)
                 .setTitle("Editar Ítem")
                 .setPositiveButton("Guardar", (dialog, which) -> {
@@ -261,7 +254,17 @@ public class AcreedoresFragment extends Fragment {
                 .setNegativeButton("Cancelar", null)
                 .show();
     }
-
+    private void mostrarDialogoEliminarItem(ItemAcreedores item, int originalIndex) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+        builder.setTitle("Eliminar Ítem")
+                .setMessage("¿Estás seguro de que quieres eliminar este ítem: " + item.getNombre() + "? Esta acción no se puede deshacer.")
+                .setPositiveButton("Eliminar", (dialog, which) -> {
+                    acreedoresViewModel.eliminarItem(0, item.getId());
+                    Toast.makeText(getContext(), "Ítem eliminado", Toast.LENGTH_SHORT).show();
+                })
+                .setNegativeButton("Cancelar", null)
+                .show();
+    }
     private void showReusableDialog(boolean isLoadingMode, String nombre, double monto) {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
         View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_reutilizable, null);

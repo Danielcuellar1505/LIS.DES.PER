@@ -21,14 +21,22 @@ public class ItemsAdapterAcreedores extends RecyclerView.Adapter<RecyclerView.Vi
     public interface OnItemClickListener {
         void onItemClick(int originalItemIndex, ItemAcreedores item);
     }
+    public interface OnItemLongClickListener {
+        void onItemLongClick(int originalItemIndex, ItemAcreedores item);
+    }
     private List<AcreedoresEntry> entries;
     private OnItemCheckedChangeListener checkedListener;
     private OnItemClickListener clickListener;
+    private OnItemLongClickListener longClickListener;
 
-    public ItemsAdapterAcreedores(List<AcreedoresEntry> entries, OnItemCheckedChangeListener checkedListener, OnItemClickListener clickListener) {
+    public ItemsAdapterAcreedores(List<AcreedoresEntry> entries,
+                                  OnItemCheckedChangeListener checkedListener,
+                                  OnItemClickListener clickListener,
+                                  OnItemLongClickListener longClickListener) {
         this.entries = entries != null ? entries : new ArrayList<>();
         this.checkedListener = checkedListener;
         this.clickListener = clickListener;
+        this.longClickListener = longClickListener;
     }
 
     public void setItems(List<AcreedoresEntry> nuevos) {
@@ -80,6 +88,12 @@ public class ItemsAdapterAcreedores extends RecyclerView.Adapter<RecyclerView.Vi
                 if (clickListener != null) {
                     clickListener.onItemClick(entry.getOriginalIndex(), itemAcreedores);
                 }
+            });
+            iv.itemView.setOnLongClickListener(v -> {
+                if (longClickListener != null) {
+                    longClickListener.onItemLongClick(entry.getOriginalIndex(), itemAcreedores);
+                }
+                return true;
             });
         }
     }

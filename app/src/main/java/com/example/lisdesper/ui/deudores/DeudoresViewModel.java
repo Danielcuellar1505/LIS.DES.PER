@@ -21,7 +21,6 @@ public class DeudoresViewModel extends ViewModel {
     private String currentDeudoresNombre = "Deudores Principal";
     private ListenerRegistration itemsListener;
     private String selectedNameFilter = null;
-
     public DeudoresViewModel() {
         deudores = new MutableLiveData<>(new ArrayList<>());
         isLoading = new MutableLiveData<>(true);
@@ -29,7 +28,6 @@ public class DeudoresViewModel extends ViewModel {
         db = CBaseDatos.getInstance();
         cargarDeudoresPrincipal();
     }
-
     private void cargarDeudoresPrincipal() {
         isLoading.setValue(true);
         db.obtenerDeudoresPrincipal((deudorId, e) -> {
@@ -86,40 +84,38 @@ public class DeudoresViewModel extends ViewModel {
                     });
         });
     }
-
     public void filterByName(String nombre) {
         selectedNameFilter = nombre;
         cargarDeudoresPrincipal();
     }
-
     public void clearNameFilter() {
         selectedNameFilter = null;
         cargarDeudoresPrincipal();
     }
-
     public LiveData<List<Deudores>> getDeudores() {
         return deudores;
     }
-
     public LiveData<List<String>> getNombresParaAutocompletado() {
         return nombresParaAutocompletado;
     }
-
     public void agregarItem(int posicionDeudores, ItemDeudores itemDeudores) {
         db.agregarItem(currentDeudoresId, itemDeudores, null);
     }
-
     public LiveData<Boolean> getIsLoading() {
         return isLoading;
     }
-
     public void actualizarItem(int posicionDeudores, int posicionItem, ItemDeudores itemDeudoresActualizado) {
         if (itemDeudoresActualizado.getId() == null || itemDeudoresActualizado.getId().isEmpty()) {
             return;
         }
         db.actualizarItem(currentDeudoresId, itemDeudoresActualizado.getId(), itemDeudoresActualizado, null);
     }
-
+    public void eliminarItem(int posicionDeudores, String itemId) {
+        if (itemId == null || itemId.isEmpty()) {
+            return;
+        }
+        db.eliminarItem(currentDeudoresId, itemId, null);
+    }
     @Override
     protected void onCleared() {
         if (itemsListener != null) {
