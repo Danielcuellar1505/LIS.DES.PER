@@ -27,7 +27,11 @@ public class ItemsAdapterDeudores extends RecyclerView.Adapter<RecyclerView.View
     private OnItemCheckedChangeListener checkedListener;
     private OnItemClickListener clickListener;
     private OnItemLongClickListener longClickListener;
-    public ItemsAdapterDeudores(List<DeudoresEntry> entries, OnItemCheckedChangeListener checkedListener, OnItemClickListener clickListener, OnItemLongClickListener longClickListener) {
+
+    public ItemsAdapterDeudores(List<DeudoresEntry> entries,
+                                OnItemCheckedChangeListener checkedListener,
+                                OnItemClickListener clickListener,
+                                OnItemLongClickListener longClickListener) {
         this.entries = entries;
         this.checkedListener = checkedListener;
         this.clickListener = clickListener;
@@ -92,9 +96,14 @@ public class ItemsAdapterDeudores extends RecyclerView.Adapter<RecyclerView.View
     }
     static class HeaderViewHolder extends RecyclerView.ViewHolder {
         TextView tvHeaderFecha;
+        TextView hNombre, hDetalle, hMonto, hCancelado;
         HeaderViewHolder(@NonNull View itemView) {
             super(itemView);
             tvHeaderFecha = itemView.findViewById(R.id.tvHeaderFecha);
+            hNombre = itemView.findViewById(R.id.hNombre);
+            hDetalle = itemView.findViewById(R.id.hDetalle);
+            hMonto = itemView.findViewById(R.id.hMonto);
+            hCancelado = itemView.findViewById(R.id.hCancelado);
         }
     }
     static class ItemViewHolder extends RecyclerView.ViewHolder {

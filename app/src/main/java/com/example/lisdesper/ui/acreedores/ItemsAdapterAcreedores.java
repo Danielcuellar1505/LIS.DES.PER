@@ -105,9 +105,14 @@ public class ItemsAdapterAcreedores extends RecyclerView.Adapter<RecyclerView.Vi
 
     static class HeaderViewHolder extends RecyclerView.ViewHolder {
         TextView tvHeaderFecha;
+        TextView hNombre, hDetalle, hMonto, hCancelado;
         HeaderViewHolder(@NonNull View itemView) {
             super(itemView);
             tvHeaderFecha = itemView.findViewById(R.id.tvHeaderFecha);
+            hNombre = itemView.findViewById(R.id.hNombre);
+            hDetalle = itemView.findViewById(R.id.hDetalle);
+            hMonto = itemView.findViewById(R.id.hMonto);
+            hCancelado = itemView.findViewById(R.id.hCancelado);
         }
     }
 

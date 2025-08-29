@@ -1,17 +1,13 @@
 package com.example.lisdesper.ui.acreedores;
 
 import android.app.AlertDialog;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.InputType;
-import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -147,12 +143,7 @@ public class AcreedoresFragment extends Fragment {
 
     private void setButtonIconAndText(boolean mostrarCancelados) {
         int drawableRes = mostrarCancelados ? R.drawable.ic_close_eye_black_24dp : R.drawable.ic_open_eye_black_24dp;
-        Drawable drawable = ContextCompat.getDrawable(requireContext(), drawableRes);
-        if (drawable != null) {
-            int size = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16, getResources().getDisplayMetrics());
-            drawable.setBounds(0, 0, size, size);
-            binding.btnToggleCancelados.setCompoundDrawables(drawable, null, null, null);
-        }
+        binding.btnToggleCancelados.setIcon(ContextCompat.getDrawable(requireContext(), drawableRes));
         binding.btnToggleCancelados.setText(mostrarCancelados ? "Ocultar" : "Mostrar");
     }
 

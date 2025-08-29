@@ -10,8 +10,6 @@ import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -71,9 +69,13 @@ public class DeudoresFragment extends Fragment {
                     if (isLoading == null || !isLoading) {
                         mostrarDialogoEditarItem(item, originalIndex);
                     }
-                },(originalIndex, item) -> {
-            mostrarDialogoEliminarItem(item, originalIndex);
-        });
+                },
+                (originalIndex, item) -> {
+                    Boolean isLoading = deudoresViewModel.getIsLoading().getValue();
+                    if (isLoading == null || !isLoading) {
+                        mostrarDialogoEliminarItem(item, originalIndex);
+                    }
+                });
 
         binding.recyclerViewDeudores.setLayoutManager(new LinearLayoutManager(getContext()));
         binding.recyclerViewDeudores.setAdapter(adapter);
@@ -142,12 +144,7 @@ public class DeudoresFragment extends Fragment {
 
     private void setButtonIconAndText(boolean mostrarCancelados) {
         int drawableRes = mostrarCancelados ? R.drawable.ic_close_eye_black_24dp : R.drawable.ic_open_eye_black_24dp;
-        Drawable drawable = ContextCompat.getDrawable(requireContext(), drawableRes);
-        if (drawable != null) {
-            int size = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16, getResources().getDisplayMetrics());
-            drawable.setBounds(0, 0, size, size);
-            binding.btnToggleCancelados.setCompoundDrawables(drawable, null, null, null);
-        }
+        binding.btnToggleCancelados.setIcon(ContextCompat.getDrawable(requireContext(), drawableRes));
         binding.btnToggleCancelados.setText(mostrarCancelados ? "Ocultar" : "Mostrar");
     }
 
@@ -184,7 +181,6 @@ public class DeudoresFragment extends Fragment {
         EditText etDetalle = dialogView.findViewById(R.id.etDetalle);
         EditText etMonto = dialogView.findViewById(R.id.etMonto);
         etMonto.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-
         builder.setView(dialogView)
                 .setTitle("Nuevo")
                 .setPositiveButton("Agregar", (dialog, which) -> {
@@ -272,7 +268,7 @@ public class DeudoresFragment extends Fragment {
             builder.setCancelable(false);
         } else {
             viewSwitcher.setDisplayedChild(1);
-            tvMensajeCancelacion.setText(String.format(Locale.getDefault(), "%s canceló %.2f Bs", nombre, monto));
+            tvMensajeCancelacion.setText(String.format(Locale.getDefault(), "Cancelé %.2f a %s", monto, nombre));
             builder.setCancelable(true);
             new Handler(Looper.getMainLooper()).postDelayed(() -> {
                 if (cancellationDialog != null && cancellationDialog.isShowing()) {
