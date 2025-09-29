@@ -24,19 +24,25 @@ public class ItemsAdapterDeudores extends RecyclerView.Adapter<RecyclerView.View
     public interface OnItemLongClickListener {
         void onItemLongClick(int originalItemIndex, ItemDeudores item);
     }
+    public interface OnTotalClickListener {
+        void onTotalClick(String fecha);
+    }
     private List<DeudoresEntry> entries;
     private OnItemCheckedChangeListener checkedListener;
     private OnItemClickListener clickListener;
     private OnItemLongClickListener longClickListener;
+    private OnTotalClickListener totalClickListener;
 
     public ItemsAdapterDeudores(List<DeudoresEntry> entries,
                                 OnItemCheckedChangeListener checkedListener,
                                 OnItemClickListener clickListener,
-                                OnItemLongClickListener longClickListener) {
+                                OnItemLongClickListener longClickListener,
+                                OnTotalClickListener totalClickListener) {
         this.entries = entries;
         this.checkedListener = checkedListener;
         this.clickListener = clickListener;
         this.longClickListener = longClickListener;
+        this.totalClickListener = totalClickListener;
     }
 
     public void setItems(List<DeudoresEntry> nuevos) {
@@ -73,6 +79,19 @@ public class ItemsAdapterDeudores extends RecyclerView.Adapter<RecyclerView.View
         } else if (entry.getType() == DeudoresEntry.TYPE_TOTAL) {
             TotalViewHolder tv = (TotalViewHolder) holder;
             tv.tvTotalMonto.setText(String.format(Locale.getDefault(), "%.2f", entry.getTotalMonto()));
+            String fecha = null;
+            for (int i = position - 1; i >= 0; i--) {
+                if (entries.get(i).getType() == DeudoresEntry.TYPE_HEADER) {
+                    fecha = entries.get(i).getFecha();
+                    break;
+                }
+            }
+            final String finalFecha = fecha;
+            tv.itemView.setOnClickListener(v -> {
+                if (totalClickListener != null && finalFecha != null) {
+                    totalClickListener.onTotalClick(finalFecha);
+                }
+            });
         } else {
             ItemViewHolder iv = (ItemViewHolder) holder;
             ItemDeudores itemDeudores = entry.getItem();

@@ -20,6 +20,7 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.lisdesper.R;
 import com.example.lisdesper.databinding.FragmentDeudoresBinding;
@@ -28,8 +29,10 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class DeudoresFragment extends Fragment {
     private FragmentDeudoresBinding binding;
@@ -74,6 +77,12 @@ public class DeudoresFragment extends Fragment {
                     Boolean isLoading = deudoresViewModel.getIsLoading().getValue();
                     if (isLoading == null || !isLoading) {
                         mostrarDialogoEliminarItem(item, originalIndex);
+                    }
+                },
+                (fecha) -> {
+                    Boolean isLoading = deudoresViewModel.getIsLoading().getValue();
+                    if (isLoading == null || !isLoading) {
+                        mostrarDialogoUnificados(fecha);
                     }
                 });
 
@@ -164,24 +173,79 @@ public class DeudoresFragment extends Fragment {
                         String fecha = it.getFecha();
                         if (lastFecha == null || !lastFecha.equals(fecha)) {
                             if (lastFecha != null) {
-                                // Agregar entrada de total para la fecha anterior
                                 flattened.add(DeudoresEntry.total(totalPorFecha));
                             }
                             flattened.add(DeudoresEntry.header(formatearFechaParaMostrar(fecha)));
                             lastFecha = fecha;
-                            totalPorFecha = 0.0; // Reiniciar total para nueva fecha
+                            totalPorFecha = 0.0;
                         }
                         flattened.add(DeudoresEntry.item(it, i));
                         totalPorFecha += it.getMonto();
                     }
                 }
             }
-            // Agregar el total para la última fecha
             if (lastFecha != null && totalPorFecha > 0.0) {
                 flattened.add(DeudoresEntry.total(totalPorFecha));
             }
         }
         adapter.setItems(flattened);
+    }
+
+    private void mostrarDialogoUnificados(String fechaFormatted) {
+        String fechaIso;
+        try {
+            if (fechaFormatted.startsWith("HOY — ")) {
+                fechaIso = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+            } else {
+                SimpleDateFormat parse = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+                Date d = parse.parse(fechaFormatted.replace("HOY — ", ""));
+                fechaIso = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(d);
+            }
+        } catch (Exception e) {
+            Toast.makeText(getContext(), "Error al procesar la fecha", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        List<Deudores> deudores = deudoresViewModel.getDeudores().getValue();
+        if (deudores == null || deudores.isEmpty()) return;
+
+        List<ItemDeudores> items = deudores.get(0).getItems();
+        Map<String, UnifiedItemsAdapter.UnifiedItem> unifiedMap = new HashMap<>();
+        double totalGeneral = 0.0;
+
+        for (ItemDeudores item : items) {
+            if (item.getFecha().equals(fechaIso) && (mostrarCancelados || !item.isCancelado()) &&
+                    (selectedNameFilter == null || item.getNombre().equalsIgnoreCase(selectedNameFilter))) {
+                String detalle = item.getDetalle();
+                double monto = item.getMonto();
+                UnifiedItemsAdapter.UnifiedItem unifiedItem = unifiedMap.get(detalle);
+                if (unifiedItem == null) {
+                    unifiedItem = new UnifiedItemsAdapter.UnifiedItem(1, detalle, monto);
+                    unifiedMap.put(detalle, unifiedItem);
+                } else {
+                    unifiedItem.cantidad += 1;
+                    unifiedItem.montoTotal += monto;
+                }
+                totalGeneral += monto;
+            }
+        }
+
+        List<UnifiedItemsAdapter.UnifiedItem> unifiedItems = new ArrayList<>(unifiedMap.values());
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+        View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.deudores_unified_dialog, null);
+        RecyclerView rvUnifiedItems = dialogView.findViewById(R.id.rvUnifiedItems);
+        TextView tvTotalGeneral = dialogView.findViewById(R.id.tvTotalGeneral);
+        TextView tvDialogTitle = dialogView.findViewById(R.id.tvDialogTitle);
+
+        tvDialogTitle.setText("Lista - " + fechaFormatted);
+        tvTotalGeneral.setText(String.format(Locale.getDefault(), "%.2f", totalGeneral));
+
+        rvUnifiedItems.setLayoutManager(new LinearLayoutManager(getContext()));
+        rvUnifiedItems.setAdapter(new UnifiedItemsAdapter(unifiedItems));
+
+        builder.setView(dialogView)
+                .setPositiveButton("Cerrar", null)
+                .show();
     }
 
     private void mostrarDialogoAgregarItem() {
