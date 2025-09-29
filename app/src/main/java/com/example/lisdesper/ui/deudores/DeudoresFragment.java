@@ -211,7 +211,6 @@ public class DeudoresFragment extends Fragment {
 
         List<ItemDeudores> items = deudores.get(0).getItems();
         Map<String, UnifiedItemsAdapter.UnifiedItem> unifiedMap = new HashMap<>();
-        double totalGeneral = 0.0;
 
         for (ItemDeudores item : items) {
             if (item.getFecha().equals(fechaIso) && (mostrarCancelados || !item.isCancelado()) &&
@@ -226,7 +225,6 @@ public class DeudoresFragment extends Fragment {
                     unifiedItem.cantidad += 1;
                     unifiedItem.montoTotal += monto;
                 }
-                totalGeneral += monto;
             }
         }
 
@@ -234,14 +232,28 @@ public class DeudoresFragment extends Fragment {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
         View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.deudores_unified_dialog, null);
         RecyclerView rvUnifiedItems = dialogView.findViewById(R.id.rvUnifiedItems);
-        TextView tvTotalGeneral = dialogView.findViewById(R.id.tvTotalGeneral);
+        final TextView tvTotalGeneral = dialogView.findViewById(R.id.tvTotalGeneral);
         TextView tvDialogTitle = dialogView.findViewById(R.id.tvDialogTitle);
 
-        tvDialogTitle.setText("Lista - " + fechaFormatted);
-        tvTotalGeneral.setText(String.format(Locale.getDefault(), "%.2f", totalGeneral));
+        tvDialogTitle.setText("Lista de pedidos - " + fechaFormatted);
 
+        double initialTotal = 0.0;
+        for (UnifiedItemsAdapter.UnifiedItem item : unifiedItems) {
+            initialTotal += item.getMontoTotal();
+        }
+        tvTotalGeneral.setText(String.format(Locale.getDefault(), "%.2f", initialTotal));
+
+
+        UnifiedItemsAdapter[] unifiedAdapterHolder = new UnifiedItemsAdapter[1];
+        unifiedAdapterHolder[0] = new UnifiedItemsAdapter(unifiedItems, position -> {
+            unifiedItems.remove(position);
+            unifiedAdapterHolder[0].notifyItemRemoved(position);
+            unifiedAdapterHolder[0].notifyItemRangeChanged(position, unifiedItems.size());
+            double newTotal = unifiedItems.stream().mapToDouble(UnifiedItemsAdapter.UnifiedItem::getMontoTotal).sum();
+            tvTotalGeneral.setText(String.format(Locale.getDefault(), "%.2f", newTotal));
+        });
         rvUnifiedItems.setLayoutManager(new LinearLayoutManager(getContext()));
-        rvUnifiedItems.setAdapter(new UnifiedItemsAdapter(unifiedItems));
+        rvUnifiedItems.setAdapter(unifiedAdapterHolder[0]);
 
         builder.setView(dialogView)
                 .setPositiveButton("Cerrar", null)

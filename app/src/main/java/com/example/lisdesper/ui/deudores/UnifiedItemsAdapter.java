@@ -3,6 +3,7 @@ package com.example.lisdesper.ui.deudores;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -15,9 +16,15 @@ import java.util.Locale;
 
 public class UnifiedItemsAdapter extends RecyclerView.Adapter<UnifiedItemsAdapter.UnifiedItemViewHolder> {
     private List<UnifiedItem> unifiedItems;
+    private OnItemDeleteListener deleteListener;
 
-    public UnifiedItemsAdapter(List<UnifiedItem> unifiedItems) {
+    public interface OnItemDeleteListener {
+        void onItemDelete(int position);
+    }
+
+    public UnifiedItemsAdapter(List<UnifiedItem> unifiedItems, OnItemDeleteListener deleteListener) {
         this.unifiedItems = unifiedItems;
+        this.deleteListener = deleteListener;
     }
 
     @NonNull
@@ -33,6 +40,11 @@ public class UnifiedItemsAdapter extends RecyclerView.Adapter<UnifiedItemsAdapte
         holder.tvCantidad.setText(String.valueOf(item.getCantidad()));
         holder.tvDetalle.setText(item.getDetalle());
         holder.tvMontoTotal.setText(String.format(Locale.getDefault(), "%.2f", item.getMontoTotal()));
+        holder.btnEliminar.setOnClickListener(v -> {
+            if (deleteListener != null) {
+                deleteListener.onItemDelete(position);
+            }
+        });
     }
 
     @Override
@@ -42,12 +54,14 @@ public class UnifiedItemsAdapter extends RecyclerView.Adapter<UnifiedItemsAdapte
 
     static class UnifiedItemViewHolder extends RecyclerView.ViewHolder {
         TextView tvCantidad, tvDetalle, tvMontoTotal;
+        ImageButton btnEliminar;
 
         UnifiedItemViewHolder(@NonNull View itemView) {
             super(itemView);
             tvCantidad = itemView.findViewById(R.id.tvCantidad);
             tvDetalle = itemView.findViewById(R.id.tvDetalle);
             tvMontoTotal = itemView.findViewById(R.id.tvMontoTotal);
+            btnEliminar = itemView.findViewById(R.id.btnEliminar);
         }
     }
 
