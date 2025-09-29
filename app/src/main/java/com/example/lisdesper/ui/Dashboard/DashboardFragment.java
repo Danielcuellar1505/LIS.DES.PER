@@ -3,6 +3,7 @@ package com.example.lisdesper.ui.Dashboard;
 import android.app.AlertDialog;
 import android.content.res.TypedArray;
 import android.os.Bundle;
+import android.os.Environment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,6 +17,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.lisdesper.R;
 import com.example.lisdesper.databinding.FragmentDashboardBinding;
+import com.example.lisdesper.firebase.CBaseDatos;
 import com.example.lisdesper.ui.deudores.ItemDeudores;
 import com.example.lisdesper.ui.acreedores.ItemAcreedores;
 import com.github.mikephil.charting.charts.PieChart;
@@ -23,7 +25,10 @@ import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
 import com.github.mikephil.charting.formatter.ValueFormatter;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -40,7 +45,7 @@ public class DashboardFragment extends Fragment {
     private ItemsAdapterDashboard adapterAcreedores;
     private boolean isDeudoresExpanded = false;
     private boolean isAcreedoresExpanded = false;
-    private String selectedDateFilter = null; // Almacena la fecha seleccionada para filtrar
+    private String selectedDateFilter = null;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -52,11 +57,11 @@ public class DashboardFragment extends Fragment {
         setupPieChart(binding.pieChartAcreedores);
         setupRecyclerViewDeudores();
         setupRecyclerViewAcreedores();
-        updateTitles(); // Actualizar títulos inicialmente
+        updateTitles();
 
-        // Configurar botones de acordeón
         binding.btnToggleDeudores.setOnClickListener(v -> toggleDeudores());
         binding.btnToggleAcreedores.setOnClickListener(v -> toggleAcreedores());
+        binding.btnDownloadReport.setOnClickListener(v -> downloadReport());
 
         homeViewModel.getIsLoading().observe(getViewLifecycleOwner(), isLoading -> {
             if (isLoading != null) {
@@ -94,7 +99,7 @@ public class DashboardFragment extends Fragment {
 
         return root;
     }
-        public void filterByDate(String fecha) {
+    public void filterByDate(String fecha) {
         selectedDateFilter = fecha;
         updateTitles();
         homeViewModel.filterByDate(fecha);
@@ -226,6 +231,157 @@ public class DashboardFragment extends Fragment {
         builder.setView(dialogView).setCancelable(false);
         loadingDialog = builder.create();
         loadingDialog.show();
+    }
+
+    private void downloadReport() {
+        CBaseDatos db = CBaseDatos.getInstance();
+        showLoadingDialog();
+
+        List<ItemDeudores> allDeudores = new ArrayList<>();
+        List<ItemAcreedores> allAcreedores = new ArrayList<>();
+        int[] pendingTasks = {2};
+
+        db.obtenerDeudoresPrincipal((deudorId, e) -> {
+            if (e != null || deudorId == null) {
+                Toast.makeText(getContext(), "Error al cargar deudores: " + (e != null ? e.getMessage() : "ID nulo"), Toast.LENGTH_LONG).show();
+                pendingTasks[0]--;
+                if (pendingTasks[0] == 0) {
+                    generateCsvReport(allDeudores, allAcreedores);
+                }
+                return;
+            }
+            db.deudoresCollection.document(deudorId).collection("items").get()
+                    .addOnSuccessListener(querySnapshot -> {
+                        for (QueryDocumentSnapshot doc : querySnapshot) {
+                            double monto = doc.getDouble("monto") != null ? doc.getDouble("monto") : 0.0;
+                            ItemDeudores item = new ItemDeudores(
+                                    doc.getId(),
+                                    doc.getString("nombre"),
+                                    doc.getString("detalle"),
+                                    monto,
+                                    Boolean.TRUE.equals(doc.getBoolean("cancelado"))
+                            );
+                            String fechaStr = doc.getString("fecha");
+                            if (fechaStr != null) {
+                                item.setFecha(fechaStr);
+                            }
+                            allDeudores.add(item);
+                        }
+                        pendingTasks[0]--;
+                        if (pendingTasks[0] == 0) {
+                            generateCsvReport(allDeudores, allAcreedores);
+                        }
+                    })
+                    .addOnFailureListener(e1 -> {
+                        Toast.makeText(getContext(), "Error al cargar ítems de deudores: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                        pendingTasks[0]--;
+                        if (pendingTasks[0] == 0) {
+                            generateCsvReport(allDeudores, allAcreedores);
+                        }
+                    });
+        });
+
+        db.obtenerAcreedoresPrincipal((acreedorId, e) -> {
+            if (e != null || acreedorId == null) {
+                Toast.makeText(getContext(), "Error al cargar acreedores: " + (e != null ? e.getMessage() : "ID nulo"), Toast.LENGTH_LONG).show();
+                pendingTasks[0]--;
+                if (pendingTasks[0] == 0) {
+                    generateCsvReport(allDeudores, allAcreedores);
+                }
+                return;
+            }
+            db.deudoresCollection.document(acreedorId).collection("items").get()
+                    .addOnSuccessListener(querySnapshot -> {
+                        for (QueryDocumentSnapshot doc : querySnapshot) {
+                            double monto = doc.getDouble("monto") != null ? doc.getDouble("monto") : 0.0;
+                            ItemAcreedores item = new ItemAcreedores(
+                                    doc.getId(),
+                                    doc.getString("nombre"),
+                                    doc.getString("detalle"),
+                                    monto,
+                                    Boolean.TRUE.equals(doc.getBoolean("cancelado"))
+                            );
+                            String fechaStr = doc.getString("fecha");
+                            if (fechaStr != null) {
+                                item.setFecha(fechaStr);
+                            }
+                            allAcreedores.add(item);
+                        }
+                        pendingTasks[0]--;
+                        if (pendingTasks[0] == 0) {
+                            generateCsvReport(allDeudores, allAcreedores);
+                        }
+                    })
+                    .addOnFailureListener(e2 -> {
+                        Toast.makeText(getContext(), "Error al cargar ítems de acreedores: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                        pendingTasks[0]--;
+                        if (pendingTasks[0] == 0) {
+                            generateCsvReport(allDeudores, allAcreedores);
+                        }
+                    });
+        });
+    }
+
+    private void generateCsvReport(List<ItemDeudores> deudores, List<ItemAcreedores> acreedores) {
+        if ((deudores == null || deudores.isEmpty()) && (acreedores == null || acreedores.isEmpty())) {
+            if (loadingDialog != null && loadingDialog.isShowing()) {
+                loadingDialog.dismiss();
+            }
+            Toast.makeText(getContext(), "No hay datos para exportar", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        try {
+            StringBuilder csvContent = new StringBuilder();
+            csvContent.append("Tipo,Nombre,Detalle,Monto,Cancelado,Fecha\n");
+
+            if (deudores != null) {
+                for (ItemDeudores deudor : deudores) {
+                    csvContent.append(String.format(Locale.getDefault(), "Deudor,%s,%s,%.2f,%s,%s\n",
+                            escapeCsv(deudor.getNombre()),
+                            escapeCsv(deudor.getDetalle()),
+                            deudor.getMonto(),
+                            deudor.isCancelado(),
+                            deudor.getFecha()));
+                }
+            }
+
+            if (acreedores != null) {
+                for (ItemAcreedores acreedor : acreedores) {
+                    csvContent.append(String.format(Locale.getDefault(), "Acreedor,%s,%s,%.2f,%s,%s\n",
+                            escapeCsv(acreedor.getNombre()),
+                            escapeCsv(acreedor.getDetalle()),
+                            acreedor.getMonto(),
+                            acreedor.isCancelado(),
+                            acreedor.getFecha()));
+                }
+            }
+
+            String fileName = "Reporte_Todos_Los_Registros_" + new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date()) + ".csv";
+            File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName);
+
+            FileWriter writer = new FileWriter(file);
+            writer.write(csvContent.toString());
+            writer.close();
+
+            if (loadingDialog != null && loadingDialog.isShowing()) {
+                loadingDialog.dismiss();
+            }
+            Toast.makeText(getContext(), "Reporte guardado en Descargas: " + fileName, Toast.LENGTH_LONG).show();
+        } catch (Exception e) {
+            if (loadingDialog != null && loadingDialog.isShowing()) {
+                loadingDialog.dismiss();
+            }
+            Toast.makeText(getContext(), "Error al generar el reporte: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private String escapeCsv(String value) {
+        if (value == null) return "";
+        if (value.contains(",") || value.contains("\"") || value.contains("\n")) {
+            return "\"" + value.replace("\"", "\"\"") + "\"";
+        }
+        return value;
     }
 
     @Override

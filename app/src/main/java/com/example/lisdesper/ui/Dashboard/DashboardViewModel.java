@@ -14,6 +14,7 @@ import com.google.firebase.firestore.FirebaseFirestoreException;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -28,8 +29,8 @@ public class DashboardViewModel extends ViewModel {
     private final CBaseDatos db;
     private ListenerRegistration deudoresListener;
     private ListenerRegistration acreedoresListener;
-    private int loadCounter = 0; // Contador para rastrear las cargas completadas
-    private String selectedDateFilter = null; // Almacena la fecha seleccionada para filtrar
+    private int loadCounter = 0;
+    private String selectedDateFilter = null;
 
     public static class PieChartData {
         private final int cancelados;
@@ -70,6 +71,10 @@ public class DashboardViewModel extends ViewModel {
         isLoading.setValue(true);
         loadCounter = 0;
 
+        Calendar calendar = Calendar.getInstance();
+        SimpleDateFormat monthFormat = new SimpleDateFormat("yyyy-MM", Locale.getDefault());
+        String currentMonth = monthFormat.format(calendar.getTime());
+
         db.obtenerDeudoresPrincipal((deudorId, e) -> {
             if (e != null || deudorId == null) {
                 errorMessage.postValue("Error al cargar deudores: " + (e != null ? e.getMessage() : "ID nulo"));
@@ -91,6 +96,9 @@ public class DashboardViewModel extends ViewModel {
                         List<ItemDeudores> filteredDeudoresItems = new ArrayList<>();
                         String filterDate = selectedDateFilter != null ? selectedDateFilter : new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
 
+                        int canceladosMes = 0;
+                        int noCanceladosMes = 0;
+
                         for (QueryDocumentSnapshot doc : querySnapshot) {
                             double monto = doc.getDouble("monto") != null ? doc.getDouble("monto") : 0.0;
                             ItemDeudores item = new ItemDeudores(
@@ -108,17 +116,17 @@ public class DashboardViewModel extends ViewModel {
                             if (fechaStr != null && fechaStr.equals(filterDate)) {
                                 filteredDeudoresItems.add(item);
                             }
-                        }
-                        int cancelados = 0;
-                        int noCancelados = 0;
-                        for (ItemDeudores item : itemDeudores) {
-                            if (item.isCancelado()) {
-                                cancelados++;
-                            } else {
-                                noCancelados++;
+
+                            if (fechaStr != null && fechaStr.startsWith(currentMonth)) {
+                                if (item.isCancelado()) {
+                                    canceladosMes++;
+                                } else {
+                                    noCanceladosMes++;
+                                }
                             }
                         }
-                        deudoresChartData.postValue(new PieChartData(cancelados, noCancelados));
+
+                        deudoresChartData.postValue(new PieChartData(canceladosMes, noCanceladosMes));
                         todayDeudoresItems.postValue(filteredDeudoresItems);
                         checkLoadingComplete();
                     });
@@ -145,6 +153,9 @@ public class DashboardViewModel extends ViewModel {
                         List<ItemAcreedores> filteredAcreedoresItems = new ArrayList<>();
                         String filterDate = selectedDateFilter != null ? selectedDateFilter : new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
 
+                        int canceladosMes = 0;
+                        int noCanceladosMes = 0;
+
                         for (QueryDocumentSnapshot doc : querySnapshot) {
                             double monto = doc.getDouble("monto") != null ? doc.getDouble("monto") : 0.0;
                             ItemAcreedores item = new ItemAcreedores(
@@ -162,19 +173,17 @@ public class DashboardViewModel extends ViewModel {
                             if (fechaStr != null && fechaStr.equals(filterDate)) {
                                 filteredAcreedoresItems.add(item);
                             }
-                        }
 
-                        int cancelados = 0;
-                        int noCancelados = 0;
-                        for (ItemAcreedores item : itemAcreedores) {
-                            if (item.isCancelado()) {
-                                cancelados++;
-                            } else {
-                                noCancelados++;
+                            if (fechaStr != null && fechaStr.startsWith(currentMonth)) {
+                                if (item.isCancelado()) {
+                                    canceladosMes++;
+                                } else {
+                                    noCanceladosMes++;
+                                }
                             }
                         }
 
-                        acreedoresChartData.postValue(new PieChartData(cancelados, noCancelados));
+                        acreedoresChartData.postValue(new PieChartData(canceladosMes, noCanceladosMes));
                         todayAcreedoresItems.postValue(filteredAcreedoresItems);
                         checkLoadingComplete();
                     });

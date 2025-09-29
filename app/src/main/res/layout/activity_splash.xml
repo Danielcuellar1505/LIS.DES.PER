@@ -31,5 +31,19 @@
         android:textColor="@color/black"
         android:textSize="34sp"
         android:textStyle="bold" />
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="30dp"/>
+    <TextView
+        android:id="@+id/copyrightText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="© 2025 Daniel Cuellar. All Rights Reserved."
+        android:textColor="@color/black"
+        android:textSize="12sp"
+        android:padding="16dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </LinearLayout>
