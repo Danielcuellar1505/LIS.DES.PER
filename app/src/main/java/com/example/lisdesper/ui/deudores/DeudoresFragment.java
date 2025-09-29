@@ -155,6 +155,7 @@ public class DeudoresFragment extends Fragment {
             Deudores primera = deudores.get(0);
             List<ItemDeudores> itemDeudores = primera.getItems();
             String lastFecha = null;
+            double totalPorFecha = 0.0;
             for (int i = 0; i < itemDeudores.size(); i++) {
                 ItemDeudores it = itemDeudores.get(i);
                 if ((selectedDateFilter == null || it.getFecha().equals(selectedDateFilter)) &&
@@ -162,12 +163,22 @@ public class DeudoresFragment extends Fragment {
                     if (mostrarCancelados || !it.isCancelado()) {
                         String fecha = it.getFecha();
                         if (lastFecha == null || !lastFecha.equals(fecha)) {
+                            if (lastFecha != null) {
+                                // Agregar entrada de total para la fecha anterior
+                                flattened.add(DeudoresEntry.total(totalPorFecha));
+                            }
                             flattened.add(DeudoresEntry.header(formatearFechaParaMostrar(fecha)));
                             lastFecha = fecha;
+                            totalPorFecha = 0.0; // Reiniciar total para nueva fecha
                         }
                         flattened.add(DeudoresEntry.item(it, i));
+                        totalPorFecha += it.getMonto();
                     }
                 }
+            }
+            // Agregar el total para la última fecha
+            if (lastFecha != null && totalPorFecha > 0.0) {
+                flattened.add(DeudoresEntry.total(totalPorFecha));
             }
         }
         adapter.setItems(flattened);
@@ -246,6 +257,7 @@ public class DeudoresFragment extends Fragment {
                 .setNegativeButton("Cancelar", null)
                 .show();
     }
+
     private void mostrarDialogoEliminarItem(ItemDeudores item, int originalIndex) {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
         builder.setTitle("Eliminar Ítem")
@@ -257,6 +269,7 @@ public class DeudoresFragment extends Fragment {
                 .setNegativeButton("Cancelar", null)
                 .show();
     }
+
     private void showReusableDialog(boolean isLoadingMode, String nombre, double monto) {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
         View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_reutilizable, null);

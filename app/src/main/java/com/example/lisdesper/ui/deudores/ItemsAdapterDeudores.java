@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.lisdesper.R;
 
 import java.util.List;
+import java.util.Locale;
 
 public class ItemsAdapterDeudores extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     public interface OnItemCheckedChangeListener {
@@ -37,38 +38,48 @@ public class ItemsAdapterDeudores extends RecyclerView.Adapter<RecyclerView.View
         this.clickListener = clickListener;
         this.longClickListener = longClickListener;
     }
+
     public void setItems(List<DeudoresEntry> nuevos) {
         this.entries = nuevos;
         notifyDataSetChanged();
     }
+
     @Override
     public int getItemViewType(int position) {
         return entries.get(position).getType();
     }
+
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         if (viewType == DeudoresEntry.TYPE_HEADER) {
             View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.deudores_header_row, parent, false);
             return new HeaderViewHolder(v);
+        } else if (viewType == DeudoresEntry.TYPE_TOTAL) {
+            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.deudores_total_row, parent, false);
+            return new TotalViewHolder(v);
         } else {
             View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.deudores_item_row, parent, false);
             return new ItemViewHolder(v);
         }
     }
+
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         DeudoresEntry entry = entries.get(position);
         if (entry.getType() == DeudoresEntry.TYPE_HEADER) {
             HeaderViewHolder hv = (HeaderViewHolder) holder;
             hv.tvHeaderFecha.setText(entry.getFecha());
+        } else if (entry.getType() == DeudoresEntry.TYPE_TOTAL) {
+            TotalViewHolder tv = (TotalViewHolder) holder;
+            tv.tvTotalMonto.setText(String.format(Locale.getDefault(), "%.2f", entry.getTotalMonto()));
         } else {
             ItemViewHolder iv = (ItemViewHolder) holder;
             ItemDeudores itemDeudores = entry.getItem();
 
             iv.tvNombre.setText(itemDeudores.getNombre());
             iv.tvDetalle.setText(itemDeudores.getDetalle());
-            iv.tvMonto.setText(String.format("%.2f", itemDeudores.getMonto()));
+            iv.tvMonto.setText(String.format(Locale.getDefault(), "%.2f", itemDeudores.getMonto()));
             iv.cbCancelado.setOnCheckedChangeListener(null);
             iv.cbCancelado.setChecked(itemDeudores.isCancelado());
             iv.cbCancelado.setOnCheckedChangeListener((buttonView, isChecked) -> {
@@ -90,10 +101,12 @@ public class ItemsAdapterDeudores extends RecyclerView.Adapter<RecyclerView.View
             });
         }
     }
+
     @Override
     public int getItemCount() {
         return entries != null ? entries.size() : 0;
     }
+
     static class HeaderViewHolder extends RecyclerView.ViewHolder {
         TextView tvHeaderFecha;
         TextView hNombre, hDetalle, hMonto, hCancelado;
@@ -106,6 +119,7 @@ public class ItemsAdapterDeudores extends RecyclerView.Adapter<RecyclerView.View
             hCancelado = itemView.findViewById(R.id.hCancelado);
         }
     }
+
     static class ItemViewHolder extends RecyclerView.ViewHolder {
         TextView tvNombre, tvDetalle, tvMonto;
         CheckBox cbCancelado;
@@ -115,6 +129,14 @@ public class ItemsAdapterDeudores extends RecyclerView.Adapter<RecyclerView.View
             tvDetalle = itemView.findViewById(R.id.tvDetalle);
             tvMonto = itemView.findViewById(R.id.tvMonto);
             cbCancelado = itemView.findViewById(R.id.cbCancelado);
+        }
+    }
+
+    static class TotalViewHolder extends RecyclerView.ViewHolder {
+        TextView tvTotalMonto;
+        TotalViewHolder(@NonNull View itemView) {
+            super(itemView);
+            tvTotalMonto = itemView.findViewById(R.id.tvTotalMonto);
         }
     }
 }
