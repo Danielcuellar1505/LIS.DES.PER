@@ -1,6 +1,9 @@
 package com.example.lisdesper.ui.deudores;
 
 import android.app.AlertDialog;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
@@ -11,6 +14,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ViewSwitcher;
@@ -234,6 +238,7 @@ public class DeudoresFragment extends Fragment {
         RecyclerView rvUnifiedItems = dialogView.findViewById(R.id.rvUnifiedItems);
         final TextView tvTotalGeneral = dialogView.findViewById(R.id.tvTotalGeneral);
         TextView tvDialogTitle = dialogView.findViewById(R.id.tvDialogTitle);
+        ImageButton btnCopy = dialogView.findViewById(R.id.btnCopy);
 
         tvDialogTitle.setText("Lista de pedidos - " + fechaFormatted);
 
@@ -243,17 +248,31 @@ public class DeudoresFragment extends Fragment {
         }
         tvTotalGeneral.setText(String.format(Locale.getDefault(), "%.2f", initialTotal));
 
+        btnCopy.setOnClickListener(v -> {
+            StringBuilder clipboardText = new StringBuilder();
+            for (UnifiedItemsAdapter.UnifiedItem item : unifiedItems) {
+                clipboardText.append(String.format(Locale.getDefault(), "%d %s\n", item.getCantidad(), item.getDetalle()));
+            }
+            ClipboardManager clipboard = (ClipboardManager) requireContext().getSystemService(Context.CLIPBOARD_SERVICE);
+            ClipData clip = ClipData.newPlainText("Ítems Unificados", clipboardText.toString().trim());
+            clipboard.setPrimaryClip(clip);
+            Toast.makeText(getContext(), "Lista copiada a portapapeles", Toast.LENGTH_SHORT).show();
+        });
 
-        UnifiedItemsAdapter[] unifiedAdapterHolder = new UnifiedItemsAdapter[1];
-        unifiedAdapterHolder[0] = new UnifiedItemsAdapter(unifiedItems, position -> {
+        final UnifiedItemsAdapter[] adapterHolder = new UnifiedItemsAdapter[1];
+        adapterHolder[0] = new UnifiedItemsAdapter(unifiedItems, position -> {
             unifiedItems.remove(position);
-            unifiedAdapterHolder[0].notifyItemRemoved(position);
-            unifiedAdapterHolder[0].notifyItemRangeChanged(position, unifiedItems.size());
-            double newTotal = unifiedItems.stream().mapToDouble(UnifiedItemsAdapter.UnifiedItem::getMontoTotal).sum();
+            adapterHolder[0].notifyItemRemoved(position);
+            adapterHolder[0].notifyItemRangeChanged(position, unifiedItems.size());
+
+            double newTotal = 0.0;
+            for (UnifiedItemsAdapter.UnifiedItem item : unifiedItems) {
+                newTotal += item.getMontoTotal();
+            }
             tvTotalGeneral.setText(String.format(Locale.getDefault(), "%.2f", newTotal));
         });
         rvUnifiedItems.setLayoutManager(new LinearLayoutManager(getContext()));
-        rvUnifiedItems.setAdapter(unifiedAdapterHolder[0]);
+        rvUnifiedItems.setAdapter(adapterHolder[0]);
 
         builder.setView(dialogView)
                 .setPositiveButton("Cerrar", null)
